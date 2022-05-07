@@ -262,7 +262,7 @@ input, select, textarea {
 			display: block;
 			line-height: 1.75;
 			padding: 1rem 1.5rem;
-			overflow-x: auto;
+
 		}
 
 	hr {
@@ -314,9 +314,10 @@ input, select, textarea {
 	}
 
 	code {
-		background: rgba(220, 220, 220, 0.25);
-		border-color: #eeeeee;
+		border: none;
+		border-color: #311d1d;
 	}
+	
 
 	hr {
 		border-bottom-color: #eeeeee;
