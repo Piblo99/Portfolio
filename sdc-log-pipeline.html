@@ -6,6 +6,15 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/themes/prism-tomorrow.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/plugins/toolbar/prism-toolbar.min.css" />
+        <style>
+    pre[class*=language-] {
+        margin: 1.75em 0;
+        font-size: 1.4rem;
+        background: #111;
+    }
+</style>
 	</head>
 	<body class="is-preload">
 
@@ -50,25 +59,194 @@
 								<p>To generate the logs that would be ingested into the pipeline,
                                     I used a tool called <a style="color: blue" href="https://github.com/mingrammer/flog">flog</a>;
                                     A fake log generator for common log formats. 
+                                    This tool was extremely helpful and perfectly 
+                                    generated the required logs for streamsets, except
+                                    for the apache error logs. Streamsets log parsers work
+                                    for a different version of the apache error logs than
+                                    flog was generating. I needed to edit the log.go file
+                                    to generate them in the correct format for SDC. I installed 
+                                    flog using <code>go get -u github.com/mingrammer/flog</code>
                                 </p>
+
+<pre><code class="language-Go">
+package main
+
+import (
+	"fmt"
+	"strings"
+	"time"
+	"math/rand"
+
+	"github.com/brianvoe/gofakeit"
+)
+
+const (
+	// ApacheCommonLog : {host} {user-identifier} {auth-user-id} [{datetime}] "{method} {request} {protocol}" {response-code} {bytes}
+	ApacheCommonLog = "%s - %s [%s] \"%s %s %s\" %d %d"
+	// ApacheCombinedLog : {host} {user-identifier} {auth-user-id} [{datetime}] "{method} {request} {protocol}" {response-code} {bytes} "{referrer}" "{agent}"
+	ApacheCombinedLog = "%s - %s [%s] \"%s %s %s\" %d %d \"%s\" \"%s\""
+	// ApacheErrorLog : [{timestamp}] [{module}:{severity}] [pid {pid}:tid {thread-id}] [client %{client}:{port}] %{message}
+	ApacheErrorLog = "[%s] [%s] [pid %d:tid %d] [client %s:%d] %s"
+	// RFC3164Log : <priority>{timestamp} {hostname} {application}[{pid}]: {message}
+	RFC3164Log = "<%d>%s %s %s[%d]: %s"
+	// RFC5424Log : <priority>{version} {iso-timestamp} {hostname} {application} {pid} {message-id} {structured-data} {message}
+	RFC5424Log = "<%d>%d %s %s %s %d ID%d %s %s"
+	// CommonLogFormat : {host} {user-identifier} {auth-user-id} [{datetime}] "{method} {request} {protocol}" {response-code} {bytes}
+	CommonLogFormat = "%s - %s [%s] \"%s %s %s\" %d %d"
+	// JSONLogFormat : {"host": "{host}", "user-identifier": "{user-identifier}", "datetime": "{datetime}", "method": "{method}", "request": "{request}", "protocol": "{protocol}", "status", {status}, "bytes": {bytes}, "referer": "{referer}"}
+	JSONLogFormat = `{"host":"%s", "user-identifier":"%s", "datetime":"%s", "method": "%s", "request": "%s", "protocol":"%s", "status":%d, "bytes":%d, "referer": "%s"}`
+)
+
+// NewApacheCommonLog creates a log string with apache common log format
+func NewApacheCommonLog(t time.Time) string {
+	return fmt.Sprintf(
+		ApacheCommonLog,
+		gofakeit.IPv4Address(),
+		RandAuthUserID(),
+		t.Format(Apache),
+		gofakeit.HTTPMethod(),
+		RandResourceURI(),
+		RandHTTPVersion(),
+		gofakeit.StatusCode(),
+		gofakeit.Number(0, 30000),
+	)
+}
+
+// NewApacheCombinedLog creates a log string with apache combined log format
+func NewApacheCombinedLog(t time.Time) string {
+	return fmt.Sprintf(
+		ApacheCombinedLog,
+		gofakeit.IPv4Address(),
+		RandAuthUserID(),
+		t.Format(Apache),
+		gofakeit.HTTPMethod(),
+		RandResourceURI(),
+		RandHTTPVersion(),
+		gofakeit.StatusCode(),
+		gofakeit.Number(30, 100000),
+		gofakeit.URL(),
+		gofakeit.UserAgent(),
+	)
+}
+
+	func loglvl () string {
+		randNumber := rand.Intn(8)
+		Lvl := ""
+
+		//"apache":  {"emerg", "alert", "crit", "error", "warn", "notice", "info", "debug"},
+		switch randNumber {
+		case 1:
+			Lvl = "emerg"
+		case 2:
+			Lvl = "alert"
+		case 3:
+			Lvl = "crit"
+		case 4:
+			Lvl = "error"
+		case 5: 
+			Lvl = "warn"
+		case 6: 
+			Lvl = "notice"
+		case 7:
+			Lvl = "info"
+		default:
+			Lvl = "debug"
+		}
+		return Lvl
+	}
+// NewApacheErrorLog creates a log string with apache error log format
+func NewApacheErrorLog(t time.Time) string {
+	return fmt.Sprintf(
+		ApacheErrorLog,
+		t.Format(ApacheError),
+		loglvl(),
+		gofakeit.Number(1, 10000),
+		gofakeit.Number(1, 10000),
+		gofakeit.IPv4Address(),
+		gofakeit.Number(1, 65535),
+		gofakeit.HackerPhrase(),
+	)
+}
+
+// NewRFC3164Log creates a log string with syslog (RFC3164) format
+func NewRFC3164Log(t time.Time) string {
+	return fmt.Sprintf(
+		RFC3164Log,
+		gofakeit.Number(0, 191),
+		t.Format(RFC3164),
+		strings.ToLower(gofakeit.Username()),
+		gofakeit.Word(),
+		gofakeit.Number(1, 10000),
+		gofakeit.HackerPhrase(),
+	)
+}
+
+// NewRFC5424Log creates a log string with syslog (RFC5424) format
+func NewRFC5424Log(t time.Time) string {
+	return fmt.Sprintf(
+		RFC5424Log,
+		gofakeit.Number(0, 191),
+		gofakeit.Number(1, 3),
+		t.Format(RFC5424),
+		gofakeit.DomainName(),
+		gofakeit.Word(),
+		gofakeit.Number(1, 10000),
+		gofakeit.Number(1, 1000),
+		"-", // TODO: structured data
+		gofakeit.HackerPhrase(),
+	)
+}
+
+// NewCommonLogFormat creates a log string with common log format
+func NewCommonLogFormat(t time.Time) string {
+	return fmt.Sprintf(
+		CommonLogFormat,
+		gofakeit.IPv4Address(),
+		RandAuthUserID(),
+		t.Format(CommonLog),
+		gofakeit.HTTPMethod(),
+		RandResourceURI(),
+		RandHTTPVersion(),
+		gofakeit.StatusCode(),
+		gofakeit.Number(0, 30000),
+	)
+}
+
+// NewJSONLogFormat creates a log string with json log format
+func NewJSONLogFormat(t time.Time) string {
+	return fmt.Sprintf(
+		JSONLogFormat,
+		gofakeit.IPv4Address(),
+		RandAuthUserID(),
+		t.Format(CommonLog),
+		gofakeit.HTTPMethod(),
+		RandResourceURI(),
+		RandHTTPVersion(),
+		gofakeit.StatusCode(),
+		gofakeit.Number(0, 30000),
+		gofakeit.URL(),
+	)
+}
+
+</code></pre>
 							</section>
 
 					</div>
 
 				<!-- Footer -->
 					<footer id="footer">
-							<section class="alt">
+							<section>
 								<h3 >Address</h3>
 								<p >1234 Somewhere Road #87257<br />
 								Nashville, TN 00000-0000</p>
 							</section>
 							<section>
 								<h3>Phone</h3>
-								<p><a href="#">(000) 000-0000</a></p>
+								<p>(000) 000-0000</p>
 							</section>
 							<section>
 								<h3>Email</h3>
-								<p><a href="#">info@untitled.tld</a></p>
+								<p>info@untitled.tld</p>
 							</section>
 							<section>
 								<h3>Social</h3>
@@ -89,6 +267,17 @@
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+            <script>
+                window.addEventListener('DOMContentLoaded', (event) => {
+                    document.querySelectorAll('pre[class*=language-]').forEach(function (node) {
+                        node.classList.add('line-numbers');
+                    });
+                    Prism.highlightAll();
+                });
+            </script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
 
 	</body>
 </html>
