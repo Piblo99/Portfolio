@@ -3961,6 +3961,20 @@ input, select, textarea {
 		width: calc(100% - 4rem);
 		max-width: 72rem;
 		z-index: 2;
+
+		
+	}
+
+	#footer section p {
+		text-align:center
+	}
+
+	#footer section ul {
+		text-align:center
+	}
+
+	#footer section h3 {
+		text-align:center
 	}
 
 		#footer input, #footer select, #footer textarea {
