@@ -49,8 +49,16 @@
                                     pipeline should then be used to create a dashboard using Tableau.</p>
 								</header>
 								<div class="image main"><img src="images/streamsetsFS.png" alt="" /></div>
+                                <h2 style="text-align:center;">Getting the GeoLite2-City database</h2>
+                                <p>
+                                    Part of this project involves creating a geographical visualization on a dashboard.
+                                    To accomplish this, I used the GeoLite2-City database from <a style="color: blue" href="https://www.maxmind.com/">maxmind.com</a>.
+                                    Streamsets has a GeoIP processor that can use this database to create Fields containing Longitude
+                                    and Latitude values, aswell as the corresponding city names.
+                                </p>
                                 <h2 style="text-align:center;">Creating the logs</h2>
-								<p>To generate the logs that would be ingested into the pipeline,
+								<p>
+                                    To generate the logs that would be ingested into the pipeline,
                                     I used a tool called <a style="color: blue" href="https://github.com/mingrammer/flog">flog</a>;
                                     A fake log generator for common log formats. 
                                     This tool was extremely helpful and perfectly 
@@ -60,6 +68,9 @@
                                     flog was generating. I needed to edit the log.go file
                                     to generate them in the correct format for SDC. I installed 
                                     flog using <code>go get -u github.com/mingrammer/flog</code>
+                                    then I went to the location of the installed files at
+                                    C:\Users\[username]\go\pkg\mod\github.com\mingrammer\flog@v0.4.3<br />
+                                    I replaced the contents of log.go with the following code:
                                 </p>
 
 <pre><code class="language-go line-numbers">
@@ -223,6 +234,24 @@ func NewJSONLogFormat(t time.Time) string {
 }
 
 </code></pre>
+
+                                <p>
+                                   After I replaced the code, I ran go build and then go install in my terminal.
+                                   Now the apache error logs will be generated in a format 
+                                   that can be ingested into streamsets without raising an error.
+                                   Next I created a folder called Data in my downloads folder.
+                                   I opened my terminal and set the current working directory
+                                   to this folder and ran the following commands:<br />
+
+                                   <code>flog -t log -f apache_error -o error.log -n 100000 -w</code><br />
+                                   <code>flog -t log -f apache_common -o common.log -n 100000 -w</code><br />
+                                   <code>flog -t log -f apache_combined -o combined.log -n 100000 -w</code><br />
+
+                                   After the log files are generated I extracted the files of the GeoLite2-City_20220426.tar.gz
+                                   into the data folder as well and it was now ready to put into the docker container
+                                   where the SDC pipeline is running. To do so, I ran this command:<br />
+                                   <code>docker cp C:\Users\[username]\Downloads\data [container_name]:/resources</code><br />
+                                </p>
 							</section>
 
 					</div>
