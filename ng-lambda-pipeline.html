@@ -77,7 +77,7 @@
                                 <h2 style="text-align:center;">Creating the Lambda SAM Applications</h2>
                                 <p>
                                     The next step is to create our producer application! I simply went into the serverless-lambda environment, and
-                                    clicked Creat Lambda SAM Application in the US-East-1 Region. I set the runtime to python 3.8, architecture to x86_64, 
+                                    clicked Create Lambda SAM Application in the us-east-1 Region. I set the runtime to python 3.8, architecture to x86_64, 
                                     selected the Hello world template, and then set the name to consumer. After the application was created, I located the 
                                     app.py file within the hello_world folder and replaced the template code with the following: 
                                 </p>
@@ -281,12 +281,24 @@ def lambda_handler(event, context):
                                     <br><code>pip3 install wikipedia -t ./</code>
                                     <br>[installing pandas in the bash terminal and then trying to run this code after it is deployed produced an error, so I added it as a layer later on instead.]
                                 </p>
-                                <h2 style="text-align:center;">Getting the GeoLite2-City database</h2>
+                                <h2 style="text-align:center;">Deploying and configuring the SAM applications</h2>
                                 <p>
-                                    Part of this project involves creating a geographical visualization on a dashboard.
-                                    To accomplish this, I used the GeoLite2-City database from <a style="color: blue" href="https://www.maxmind.com/">maxmind.com</a>.
-                                    Streamsets has a GeoIP processor that can use this database to create Fields containing Longitude
-                                    and Latitude values, aswell as the corresponding city names.
+                                    In the AWS explorer window i right clicked the region (us-east-1) and selected Deploy SAM Application.
+                                    I selected producer/template.yaml and then selected the S3 bucket I created earlier.
+                                    Then set the stack name to producer and hit enter. Once the producer was deploted, I did the same process
+                                    for the consumer but set the stack name to consumer. Now that both of the applications were deployed,
+                                    I went into the AWS Lambda service and selected the producer function. I changed the execution role to the admin
+                                    role that I created earlier. Then i added an EventBridge(cloudwatch events) trigger to the function. 
+                                    I configured the trigger to use a new schedule expression of rate(1 minute) so the function would automatically run
+                                    every minute.
+                                    <br>
+                                    <br>
+                                    Next i configured the consumer function. I applied the admin execution role, then added pandas layer that was compatible
+                                    with my runtime by specifying the ARN: arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p38-pandas:3
+                                    <br>
+                                    Then I changed the timeout for the function in the general configuration from 3 seconds to 1 min
+                                    [the function takes so long to run at some points that a timout of 3 seconds will just make it quit without returning any outputs]
+                                    
                                 </p>
                                 <h2 style="text-align:center;">Creating the logs</h2>
 								<p>
