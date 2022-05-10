@@ -42,28 +42,30 @@
 									<span class="date">May 04, 2022</span>
 									<h1>Serverless Data<br />
                                     Engineering Pipeline: AWS</h1>
-									<p>
-                                        The objective of this project was create serverless data pipeline
-									    that would use DynamoDB as a source for data, and push that data into 
-                                        AWS SQS using a producer lambda function. Then the data in SQS would be
-                                        consumed by a consumer lambda function. The consumer lambda function sits idly
-                                        waiting for the producer to run from a cloudwatch event bridge trigger every 1 minutes.
-                                        As soon as the producer is pushed to SQS the consumer should take those messages in the Queue
-                                        and push them to the AWS Comprehend service. AWS comprehend would perform sentiment analysis
-                                        on these messages using wikipedia searches on the names of FANG companies.
-                                        After AWS Comprehend generates a sentiment score, the consumer function generats a CSV
-                                        file in an Amazon S3 bucket containing the name of the company and the sentiment score
-                                        for each message consumed.
-                                    </p>
-                                    <div class="image main"><img src="images/ngpipeline.png" alt="" /></div>
-								</header>
-                                <h2 style="text-align:center;">Setting up StreamSets Environment</h2>
-                                <p>
-                                    The first thing I did was log into StreamSets Control Hub and create a new self managed deployment
-                                    using the data collector engine. I set the install type to Docker image. Then, I created
-                                    a new pipeline using the authoring engine I had just previously created. 
+								<p>
+                                    The objective of this project was create serverless data pipeline
+									that would use DynamoDB as a source for data, and push that data into 
+                                    AWS SQS using a producer lambda function. Then the data in SQS would be
+                                    consumed by a consumer lambda function. The consumer lambda function sits idly
+                                    waiting for the producer to run from a cloudwatch event bridge trigger every 1 minutes.
+                                    As soon as the producer is pushed to SQS the consumer should take those messages in the Queue
+                                    and push them to the AWS Comprehend service. AWS comprehend would perform sentiment analysis
+                                    on these messages using wikipedia searches on the names of FANG companies.
+                                    After AWS Comprehend generates a sentiment score, the consumer function generats a CSV
+                                    file in an Amazon S3 bucket containing the name of the company and the sentiment score
+                                    for each message consumed.
                                 </p>
-
+                                <div class="image main"><img src="images/ngpipeline.png" alt="" /></div>
+								</header>
+                                <h2 style="text-align:center;">Setting up AWS Environment</h2>
+                                <p>
+                                   Firstly, I used AWS IAM to create a role called admin with administrator access permission.
+                                   This role would later be used for execution roles for lambda functions.
+                                   Then I created a DynamoDB table called fang, which I filled with items that each had one string value called name. 
+                                   I created items with name values: Facebook, Amazon (Company), Netflix, and Google. 
+                                   Next, I created an SQS named producer and set the visibility timeout window to 2 minutes.
+                                   This would be 
+                                </p>
                                 <h2 style="text-align:center;">Pipeline process</h2>
                                 <p>
                                     A picture of the completed pipeline can be seen above, Now I will go into the process of creating this pipeline.
