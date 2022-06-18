@@ -3130,8 +3130,8 @@ input, select, textarea {
 			height: 3rem;
 			letter-spacing: 0.075em;
 			line-height: calc(3rem - 4px);
-			margin-left: -2px;
-			min-width: 3rem;
+			margin-left: 10px;
+			min-width: 7rem;
 			position: relative;
 			text-align: center;
 			text-decoration: none;
