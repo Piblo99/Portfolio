@@ -3203,11 +3203,6 @@ input, select, textarea {
 			z-index: 1;
 		}
 
-			.pagination a:hover + a,
-			.pagination a:hover + span {
-				border-left-color: #18bfef;
-			}
-
 		.pagination a.active {
 			background-color: #eeeeee;
 		}
