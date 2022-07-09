@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Paul Hankins</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-dark.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.css" integrity="sha512-Dqf5696xtofgH089BgZJo2lSWTvev4GFo+gA2o4GullFY65rzQVQLQVlzLvYwTo0Bb2Gpb6IqwxYWtoMonfdhQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.css" integrity="sha512-cbQXwDFK7lj2Fqfkuxbo5iD1dSbLlJGXGpfTDqbggqjHJeyzx88I3rfwjS38WJag/ihH7lzuGlGHpDBymLirZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+				<header id="header">
+					<a href="index.html" class="logo">Home</a>
+				</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">About me</a></li>
+							<li  class="active"><a href="engineer-projects-1.html">Data Engineer Projects</a></li>
+                            <li><a href="analytics-projects-1.html">Data Analytics Projects</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+							<li><a href="https://github.com/Piblo99" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+                                <header class="major">
+                                    <span class="date">July 9, 2022</span>
+                                    <h1>Spark CDC/Replication<br />
+                                        Project</h1>
+                                    <p>The objective of this project was </p>
+                                </header>
+                                <h2 style="text-align:center;">Setting up AWS Environment</h2>
+                                <p>
+                                   Firstly, I used AWS IAM to create a role called admin with administrator access permission.
+                                   This role would later be used for execution roles for lambda functions.
+                                   Then I created a DynamoDB table called fang, which I filled with items that each had one string value called name. 
+                                   I created items with name values: Facebook, Amazon (Company) [just Amazon would cause a disambiguation error in the consumer later], Netflix, and Google. 
+                                   Next, I created an SQS queue named producer and set the visibility timeout window to 2 minutes.
+                                   [I set this visibility window to 2 but just setting it to above 1 minute is fine. 
+                                   it just needs to be greater than the timeout for the consumer function]. I then created
+                                   an S3 bucket that was used to hold the packages for my lambda functions and the output of the pipeline.
+                                   The S3 bucket needed to have public access allowed so the lambda functions could access it.
+                                   Lastly for the setup of this project, I used the Cloud9 service to create an environment called serverless-lambda using an EC2
+                                   instance running amazon linux 2. This instance's volume starts with 10 GBs but it needed to be upgraded to 20 GBs
+                                   in order for the code for the producer to be tested to test code. The consumer function could not be tested inside of the
+                                   Cloud9 environment. After you modify the volume to have 20 GBs, reboot the instance being used for the Cloud9 environment.
+                                   Then I used <code>df -h</code> in the bash terminal for the environment to confirm that it has 20 GBs in the root volume.
+                                </p>
+                                <h2 style="text-align:center;">Creating the Lambda SAM Applications</h2>
+                                <p>
+                                    The next step is to create our producer application! I simply went into the serverless-lambda environment, and
+                                    clicked Create Lambda SAM Application in the us-east-1 Region. I set the runtime to python 3.8, architecture to x86_64, 
+                                    selected the Hello world template, and then set the name to consumer. After the application was created, I located the 
+                                    app.py file within the hello_world folder and replaced the template code with the following: 
+                                </p>
+<pre><code class="language-python line-numbers">from awsglue.utils import getResolvedOptions
+import sys
+from pyspark.sql.functions import when
+from pyspark.sql import SparkSession
+
+args = getResolvedOptions(sys.argv,['s3_target_path_key','s3_target_path_bucket'])
+bucket = args['s3_target_path_bucket']
+fileName = args['s3_target_path_key']
+
+print(bucket, fileName)
+
+spark = SparkSession.builder.appName("CDC").getOrCreate()
+inputFilePath = f"s3a://{bucket}/{fileName}"
+finalFilePath = f"s3a://cdc-ouput-pyspark/output"
+
+if "LOAD" in fileName:
+    fldf = spark.read.csv(inputFilePath)
+    fldf = fldf.withColumnRenamed("_c0","id").withColumnRenamed("_c1","FullName").withColumnRenamed("_c2","City")
+    fldf.write.mode("overwrite").csv(finalFilePath)
+else:
+    udf = spark.read.csv(inputFilePath)
+    udf = udf.withColumnRenamed("_c0","action").withColumnRenamed("_c1","id").withColumnRenamed("_c2","FullName").withColumnRenamed("_c3","City")
+    ffdf = spark.read.csv(finalFilePath)
+    ffdf = ffdf.withColumnRenamed("_c0","id").withColumnRenamed("_c1","FullName").withColumnRenamed("_c2","City")
+    
+    for row in udf.collect(): 
+        if row["action"] == 'U':
+        ffdf = ffdf.withColumn("FullName", when(ffdf["id"] == row["id"], row["FullName"]).otherwise(ffdf["FullName"]))      
+        ffdf = ffdf.withColumn("City", when(ffdf["id"] == row["id"], row["City"]).otherwise(ffdf["City"]))
+    
+        if row["action"] == 'I':
+        insertedRow = [list(row)[1:]]
+        columns = ['id', 'FullName', 'City']
+        newdf = spark.createDataFrame(insertedRow, columns)
+        ffdf = ffdf.union(newdf)
+    
+        if row["action"] == 'D':
+        ffdf = ffdf.filter(ffdf.id != row["id"])
+        
+    ffdf.write.mode("overwrite").csv(finalFilePath)   
+</code></pre><br>
+
+<pre><code class="language-python line-numbers">import json
+import boto3
+
+def lambda_handler(event, context):
+     
+    bucketName = event["Records"][0]["s3"]["bucket"]["name"]
+    fileName = event["Records"][0]["s3"]["object"]["key"]
+    
+    print(bucketName, fileName)
+        
+    glue = boto3.client('glue')
+
+    response = glue.start_job_run(
+        JobName = 'glueCDC-pyspark',
+        Arguments = {
+            '--s3_target_path_key': fileName,
+            '--s3_target_path_bucket': bucketName
+        } 
+    )
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }    
+</pre></code><br>
+                                <p>
+                                    This also needed packages installed so i ran the following commands:
+                                    <br><code>cd ~/environment/consumer/hello_world</code>
+                                    <br><code>pip3 install python-json-logger -t ./</code>
+                                    <br><code>pip3 install boto3 -t ./</code>
+                                    <br><code>pip3 install wikipedia -t ./</code>
+                                    <br>[installing pandas in the bash terminal and then trying to run this code after it is deployed produced an error, so I added it as a layer later on instead.]
+                                </p>
+                                <h2 style="text-align:center;">Deploying and configuring the SAM applications</h2>
+                                <p>
+                                    In the AWS explorer window i right clicked the region (us-east-1) and selected Deploy SAM Application.
+                                    I selected producer/template.yaml and then selected the S3 bucket I created earlier.
+                                    Then set the stack name to producer and hit enter. Once the producer was deploted, I did the same process
+                                    for the consumer but set the stack name to consumer. Now that both of the applications were deployed,
+                                    I went into the AWS Lambda service and selected the producer function. I changed the execution role to the admin
+                                    role that I created earlier. Then i added an EventBridge(cloudwatch events) trigger to the function. 
+                                    I configured the trigger to use a new schedule expression of rate(1 minute) so the function would automatically run
+                                    every minute.
+                                    <br>
+                                    <br>
+                                    Next i configured the consumer function. I applied the admin execution role, then added pandas layer that was compatible
+                                    with my runtime by specifying the ARN: <br> arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p38-pandas:3
+                                    <br>
+                                    Then I changed the timeout for the function in the general configuration from 3 seconds to 1 min
+                                    [the function takes so long to run at some points that a timout of 3 seconds will just make it quit without returning any outputs].
+                                    Lastly, I set an SQS trigger on the function and set it to target the producer queue.
+                                </p>
+                                <h2 style="text-align:center;">Running the Functions</h2>
+								<p>
+                                    After the Lambda functions were configured, they ran fully automatically. The consumer ran every minute,
+                                    putting 4 new messages into the queue for each run. When no messages were detected in SQS, the consumer function would run 
+                                    and it would look through the names of the items in the messages. it would search up the wikipedia pages of those names, and return 
+                                    the first sentence from them. This sentence was then sent to the AWS Comprehend service to have sentiment analysis performed on it.
+                                    The name, wikipedia snippet, and sentiment were then all written into a csv file for each message consumed, and then placed into an s3 bucket.
+                                </p>
+							</section>
+
+					</div>
+
+				<!-- Footer -->
+                <footer id="footer">
+                    <section class="alt">
+                        <h3>Address</h3>
+                        <p>BARTLESVILLE, OK</p>
+                    </section>
+                    <section>
+                        <h3>Phone</h3>
+                        <p>(504) 201-4748</p>
+                    </section>
+                    <section>
+                        <h3>Email</h3>
+                        <p>paulhankins99@gmail.com</p>
+                    </section>
+                    <section>
+                        <h3>Social</h3>
+                        <ul class="icons alt">
+                            <li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands alt fa-linkedin"><span class="label">Linkedin</span></a></li>
+                            <li><a href="https://github.com/Piblo99" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+                        </ul>
+                    </section>
+            </footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.js" integrity="sha512-st608h+ZqzliahyzEpETxzU0f7z7a9acN6AFvYmHvpFhmcFuKT8a22TT5TpKpjDa3pt3Wv7Z3SdQBCBdDPhyWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js" integrity="sha512-/kVH1uXuObC0iYgxxCKY41JdWOkKOxorFVmip+YVifKsJ4Au/87EisD1wty7vxN2kAhnWh6Yc8o/dSAXj6Oz7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.js" integrity="sha512-BttltKXFyWnGZQcRWj6osIg7lbizJchuAMotOkdLxHxwt/Hyo+cl47bZU0QADg+Qt5DJwni3SbYGXeGMB5cBcw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-python.min.js" integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	</body>
+</html>
