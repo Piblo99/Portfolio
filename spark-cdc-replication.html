@@ -42,9 +42,12 @@
                                     <span class="date">July 9, 2022</span>
                                     <h1>Spark CDC/Replication<br />
                                         Project</h1>
-                                    <p>The objective of this project was </p>
+                                    <p>The objective of this project was to Load data from a MySQL Database to a Data Lake in an S3 bucket, 
+                                        and to create a pipeline that would keep track of any changes of any insertions, deletions, or updates to that data.
+                                    </p>
                                 </header>
-                                <h2 style="text-align:center;">Setting up AWS Environment</h2>
+                                <h2 style="text-align:center;">Architecture Diagram</h2>
+                                <div class="image main"><img src="images/cdc_architecture.png" alt="" /></div>
                                 <p>
                                    Firstly, I used AWS IAM to create a role called admin with administrator access permission.
                                    This role would later be used for execution roles for lambda functions.
