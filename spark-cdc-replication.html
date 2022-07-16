@@ -46,30 +46,36 @@
                                         and to create a pipeline that would keep track of any changes of any insertions, deletions, or updates to that data.
                                     </p>
                                 </header>
-                                <h2 style="text-align:center;">Architecture Diagram</h2>
+                                <h2 style="text-align:center;">Architecture</h2>
                                 <div class="image main"><img src="images/cdc_architecture.png" alt="" /></div>
                                 <p>
-                                   Firstly, I used AWS IAM to create a role called admin with administrator access permission.
-                                   This role would later be used for execution roles for lambda functions.
-                                   Then I created a DynamoDB table called fang, which I filled with items that each had one string value called name. 
-                                   I created items with name values: Facebook, Amazon (Company) [just Amazon would cause a disambiguation error in the consumer later], Netflix, and Google. 
-                                   Next, I created an SQS queue named producer and set the visibility timeout window to 2 minutes.
-                                   [I set this visibility window to 2 but just setting it to above 1 minute is fine. 
-                                   it just needs to be greater than the timeout for the consumer function]. I then created
-                                   an S3 bucket that was used to hold the packages for my lambda functions and the output of the pipeline.
-                                   The S3 bucket needed to have public access allowed so the lambda functions could access it.
-                                   Lastly for the setup of this project, I used the Cloud9 service to create an environment called serverless-lambda using an EC2
-                                   instance running amazon linux 2. This instance's volume starts with 10 GBs but it needed to be upgraded to 20 GBs
-                                   in order for the code for the producer to be tested to test code. The consumer function could not be tested inside of the
-                                   Cloud9 environment. After you modify the volume to have 20 GBs, reboot the instance being used for the Cloud9 environment.
-                                   Then I used <code>df -h</code> in the bash terminal for the environment to confirm that it has 20 GBs in the root volume.
+                                   This is the architecture of our pipeline. We want to use RDS to connect to a MySQL database, which will be the source endpoint 
+                                   of AWS DMS. our Destination Endpoint will be an S3 bucket, which is like the AWS version of HDFS, but S3 has has more scalability 
+                                   and other features. When this data is migrated from our MySQL database to s3, a lambda function will be triggered which will start 
+                                   a glue job running pyspark. The data in S3 will then be read by the glue job and written back to the bucket as an upsert. And of course
+                                   we use IAM to configure roles that will allow our services to have the permissions they need to itneract with one another.
                                 </p>
-                                <h2 style="text-align:center;">Creating the Lambda SAM Applications</h2>
+                                <h2 style="text-align:center;">Creating Source and Destination</h2>
                                 <p>
-                                    The next step is to create our producer application! I simply went into the serverless-lambda environment, and
-                                    clicked Create Lambda SAM Application in the us-east-1 Region. I set the runtime to python 3.8, architecture to x86_64, 
-                                    selected the Hello world template, and then set the name to consumer. After the application was created, I located the 
-                                    app.py file within the hello_world folder and replaced the template code with the following: 
+                                    The first  and easiest step is to create the RDS instance and the S3 bucket! I used mostly default settings and turned of the option
+                                    to block all public access for the bucket, and set the RDS instance to MySQL. After the RDS instance is created we can connect to it
+                                    from MySQL workbench. Then we populate the database with some records using the following dump file:
+                                    <a href="https://github.com/Piblo99/PySpark---AWS-Master-Big-Data-With-PySpark-and-AWS/blob/master/Dump">[Click here to see]</a>
+                                </p>
+                                <h2 style="text-align:center;">Configuring Database Migration Service</h2>
+                                <p>
+                                    With the Source and Destination complete, we can configure DMS endpoints. The RDS instance we created should be configured as the source, 
+                                    while the S3 instance should be configured as the Destination (Target) Endpoint. After the endpoints are created we simply create a replication 
+                                    instance. Then, we can now create our Migration Task using the endpoints and the replication instance that
+                                    we just made, setting a migration type of "Migrate existing data and replicate ongoing changes"
+                                    We also have to configure the selection rules of the task to use the proper schema and table name from our MySQL database and set the action to "Include."
+                                    Now we just have to create the task and then the data from MySQL will be loaded into S3 as a csv file, and ongoing replication will begin.
+                                </p>
+                                <h2 style="text-align:center;">CDC Glue Job</h2>
+                                <p>
+                                    Next I created the pyspark glue job that performs different actions depending on if records were 
+                                    updated, deleted, or inserted. It also takes into account if it's just a full load of database records.
+                                    All of the code can be seen below:
                                 </p>
 <pre><code class="language-python line-numbers">from awsglue.utils import getResolvedOptions
 import sys
@@ -113,6 +119,14 @@ else:
     ffdf.write.mode("overwrite").csv(finalFilePath)   
 </code></pre><br>
 
+                                <h2 style="text-align:center;">Lambda</h2>
+                                <p>
+                                    First I created a Lambda function with a trigger that would run when new files get added to S3. Then 
+                                    I test the trigger, and once I saw that it ran consistently, I edited this function to the code below.
+                                    It passes arguments to the glue job we created earlier and then invokes it for the 
+                                    specific S3 bucket and the file that gets uploaded to S3.
+                                </p>
+
 <pre><code class="language-python line-numbers">import json
 import boto3
 
@@ -138,41 +152,6 @@ def lambda_handler(event, context):
         'body': json.dumps('Hello from Lambda!')
     }    
 </pre></code><br>
-                                <p>
-                                    This also needed packages installed so i ran the following commands:
-                                    <br><code>cd ~/environment/consumer/hello_world</code>
-                                    <br><code>pip3 install python-json-logger -t ./</code>
-                                    <br><code>pip3 install boto3 -t ./</code>
-                                    <br><code>pip3 install wikipedia -t ./</code>
-                                    <br>[installing pandas in the bash terminal and then trying to run this code after it is deployed produced an error, so I added it as a layer later on instead.]
-                                </p>
-                                <h2 style="text-align:center;">Deploying and configuring the SAM applications</h2>
-                                <p>
-                                    In the AWS explorer window i right clicked the region (us-east-1) and selected Deploy SAM Application.
-                                    I selected producer/template.yaml and then selected the S3 bucket I created earlier.
-                                    Then set the stack name to producer and hit enter. Once the producer was deploted, I did the same process
-                                    for the consumer but set the stack name to consumer. Now that both of the applications were deployed,
-                                    I went into the AWS Lambda service and selected the producer function. I changed the execution role to the admin
-                                    role that I created earlier. Then i added an EventBridge(cloudwatch events) trigger to the function. 
-                                    I configured the trigger to use a new schedule expression of rate(1 minute) so the function would automatically run
-                                    every minute.
-                                    <br>
-                                    <br>
-                                    Next i configured the consumer function. I applied the admin execution role, then added pandas layer that was compatible
-                                    with my runtime by specifying the ARN: <br> arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p38-pandas:3
-                                    <br>
-                                    Then I changed the timeout for the function in the general configuration from 3 seconds to 1 min
-                                    [the function takes so long to run at some points that a timout of 3 seconds will just make it quit without returning any outputs].
-                                    Lastly, I set an SQS trigger on the function and set it to target the producer queue.
-                                </p>
-                                <h2 style="text-align:center;">Running the Functions</h2>
-								<p>
-                                    After the Lambda functions were configured, they ran fully automatically. The consumer ran every minute,
-                                    putting 4 new messages into the queue for each run. When no messages were detected in SQS, the consumer function would run 
-                                    and it would look through the names of the items in the messages. it would search up the wikipedia pages of those names, and return 
-                                    the first sentence from them. This sentence was then sent to the AWS Comprehend service to have sentiment analysis performed on it.
-                                    The name, wikipedia snippet, and sentiment were then all written into a csv file for each message consumed, and then placed into an s3 bucket.
-                                </p>
 							</section>
 
 					</div>
