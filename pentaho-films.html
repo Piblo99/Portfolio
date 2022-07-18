@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Paul Hankins</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-dark.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.css" integrity="sha512-Dqf5696xtofgH089BgZJo2lSWTvev4GFo+gA2o4GullFY65rzQVQLQVlzLvYwTo0Bb2Gpb6IqwxYWtoMonfdhQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.css" integrity="sha512-cbQXwDFK7lj2Fqfkuxbo5iD1dSbLlJGXGpfTDqbggqjHJeyzx88I3rfwjS38WJag/ihH7lzuGlGHpDBymLirZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+				<header id="header">
+					<a href="index.html" class="logo">Home</a>
+				</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">About me</a></li>
+							<li  class="active"><a href="engineer-projects-1.html">Data Engineer Projects</a></li>
+                            <li><a href="analytics-projects-1.html">Data Analytics Projects</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+							<li><a href="https://github.com/Piblo99" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+                                <header class="major">
+                                    <span class="date">July 18, 2022</span>
+                                    <h1>Spark CDC/Replication<br />
+                                        Project</h1>
+                                    <p>The objective of this project was to learn the technical aspects of data warehousing with a focus on dimensional modeling.
+                                        These step by step processes used to create the dimension and fact tables in this project can be generalized to many other
+                                        date integration tools but pentaho was used for demonstration.
+                                    </p>
+                                </header>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <p>
+                                   This is the architecture of our pipeline. We want to use RDS to connect to a MySQL database, which will be the source endpoint 
+                                   of AWS DMS. our Destination Endpoint will be an S3 bucket, which is like the AWS version of HDFS, but S3 has has more scalability 
+                                   and other features. When this data is migrated from our MySQL database to s3, a lambda function will be triggered which will start 
+                                   a glue job running pyspark. The data in S3 will then be read by the glue job and written back to the bucket as an upsert. And of course
+                                   we use IAM to configure roles that will allow our services to have the permissions they need to itneract with one another.
+                                </p>
+                                <h2 style="text-align:center;">Creating Source and Destination</h2>
+                                <p>
+                                    The first  and easiest step is to create the RDS instance and the S3 bucket! I used mostly default settings and turned of the option
+                                    to block all public access for the bucket, and set the RDS instance to MySQL. After the RDS instance is created we can connect to it
+                                    from MySQL workbench. Then we populate the database with some records using the following dump file:
+                                    <a href="https://github.com/Piblo99/PySpark---AWS-Master-Big-Data-With-PySpark-and-AWS/blob/master/Dump">[Click here to see]</a>
+                                </p>
+                                <h2 style="text-align:center;">Configuring Database Migration Service</h2>
+                                <p>
+                                    With the Source and Destination complete, we can configure DMS endpoints. The RDS instance we created should be configured as the source, 
+                                    while the S3 instance should be configured as the Destination (Target) Endpoint. After the endpoints are created we simply create a replication 
+                                    instance. Then, we can now create our Migration Task using the endpoints and the replication instance that
+                                    we just made, setting a migration type of "Migrate existing data and replicate ongoing changes"
+                                    We also have to configure the selection rules of the task to use the proper schema and table name from our MySQL database and set the action to "Include."
+                                    Now we just have to create the task and then the data from MySQL will be loaded into S3 as a csv file, and ongoing replication will begin.
+                                </p>
+                                <h2 style="text-align:center;">CDC Glue Job</h2>
+                                <p>
+                                    Next I created the pyspark glue job that performs different actions depending on if records were 
+                                    updated, deleted, or inserted. It also takes into account if it's just a full load of database records.
+                                    All of the code can be seen below:
+                                </p>
+<pre><code class="language-python line-numbers">from awsglue.utils import getResolvedOptions
+import sys
+from pyspark.sql.functions import when
+from pyspark.sql import SparkSession
+
+args = getResolvedOptions(sys.argv,['s3_target_path_key','s3_target_path_bucket'])
+bucket = args['s3_target_path_bucket']
+fileName = args['s3_target_path_key']
+
+print(bucket, fileName)
+
+spark = SparkSession.builder.appName("CDC").getOrCreate()
+inputFilePath = f"s3a://{bucket}/{fileName}"
+finalFilePath = f"s3a://cdc-ouput-pyspark/output"
+
+if "LOAD" in fileName:
+    fldf = spark.read.csv(inputFilePath)
+    fldf = fldf.withColumnRenamed("_c0","id").withColumnRenamed("_c1","FullName").withColumnRenamed("_c2","City")
+    fldf.write.mode("overwrite").csv(finalFilePath)
+else:
+    udf = spark.read.csv(inputFilePath)
+    udf = udf.withColumnRenamed("_c0","action").withColumnRenamed("_c1","id").withColumnRenamed("_c2","FullName").withColumnRenamed("_c3","City")
+    ffdf = spark.read.csv(finalFilePath)
+    ffdf = ffdf.withColumnRenamed("_c0","id").withColumnRenamed("_c1","FullName").withColumnRenamed("_c2","City")
+    
+    for row in udf.collect(): 
+        if row["action"] == 'U':
+        ffdf = ffdf.withColumn("FullName", when(ffdf["id"] == row["id"], row["FullName"]).otherwise(ffdf["FullName"]))      
+        ffdf = ffdf.withColumn("City", when(ffdf["id"] == row["id"], row["City"]).otherwise(ffdf["City"]))
+    
+        if row["action"] == 'I':
+        insertedRow = [list(row)[1:]]
+        columns = ['id', 'FullName', 'City']
+        newdf = spark.createDataFrame(insertedRow, columns)
+        ffdf = ffdf.union(newdf)
+    
+        if row["action"] == 'D':
+        ffdf = ffdf.filter(ffdf.id != row["id"])
+        
+    ffdf.write.mode("overwrite").csv(finalFilePath)   
+</code></pre><br>
+
+                                <h2 style="text-align:center;">Lambda</h2>
+                                <p>
+                                    First I created a Lambda function with a trigger that would run when new files get added to S3. Then 
+                                    I test the trigger, and once I saw that it ran consistently, I edited this function to the code below.
+                                    It passes arguments to the glue job we created earlier and then invokes it for the 
+                                    specific S3 bucket and the file that gets uploaded to S3.
+                                </p>
+
+<pre><code class="language-python line-numbers">import json
+import boto3
+
+def lambda_handler(event, context):
+     
+    bucketName = event["Records"][0]["s3"]["bucket"]["name"]
+    fileName = event["Records"][0]["s3"]["object"]["key"]
+    
+    print(bucketName, fileName)
+        
+    glue = boto3.client('glue')
+
+    response = glue.start_job_run(
+        JobName = 'glueCDC-pyspark',
+        Arguments = {
+            '--s3_target_path_key': fileName,
+            '--s3_target_path_bucket': bucketName
+        } 
+    )
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }    
+</pre></code><br>
+							</section>
+
+					</div>
+
+				<!-- Footer -->
+                <footer id="footer">
+                    <section class="alt">
+                        <h3>Address</h3>
+                        <p>BARTLESVILLE, OK</p>
+                    </section>
+                    <section>
+                        <h3>Phone</h3>
+                        <p>(504) 201-4748</p>
+                    </section>
+                    <section>
+                        <h3>Email</h3>
+                        <p>paulhankins99@gmail.com</p>
+                    </section>
+                    <section>
+                        <h3>Social</h3>
+                        <ul class="icons alt">
+                            <li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands alt fa-linkedin"><span class="label">Linkedin</span></a></li>
+                            <li><a href="https://github.com/Piblo99" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+                        </ul>
+                    </section>
+            </footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.js" integrity="sha512-st608h+ZqzliahyzEpETxzU0f7z7a9acN6AFvYmHvpFhmcFuKT8a22TT5TpKpjDa3pt3Wv7Z3SdQBCBdDPhyWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js" integrity="sha512-/kVH1uXuObC0iYgxxCKY41JdWOkKOxorFVmip+YVifKsJ4Au/87EisD1wty7vxN2kAhnWh6Yc8o/dSAXj6Oz7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.js" integrity="sha512-BttltKXFyWnGZQcRWj6osIg7lbizJchuAMotOkdLxHxwt/Hyo+cl47bZU0QADg+Qt5DJwni3SbYGXeGMB5cBcw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-python.min.js" integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	</body>
+</html>
