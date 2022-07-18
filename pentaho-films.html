@@ -39,120 +39,111 @@
 						<!-- Post -->
 							<section class="post">
                                 <header class="major">
-                                    <span class="date">July 18, 2022</span>
-                                    <h1>Spark CDC/Replication<br />
-                                        Project</h1>
+                                    <h1>Pentaho Film Rentals<br />
+                                        Data Warehouse</h1>
                                     <p>The objective of this project was to learn the technical aspects of data warehousing with a focus on dimensional modeling.
                                         These step by step processes used to create the dimension and fact tables in this project can be generalized to many other
-                                        date integration tools but pentaho was used for demonstration.
+                                        data integration tools but pentaho was used for demonstration.
                                     </p>
                                 </header>
                                 <h2 style="text-align:center;">Date Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
-                                <p>
-                                   This is the architecture of our pipeline. We want to use RDS to connect to a MySQL database, which will be the source endpoint 
-                                   of AWS DMS. our Destination Endpoint will be an S3 bucket, which is like the AWS version of HDFS, but S3 has has more scalability 
-                                   and other features. When this data is migrated from our MySQL database to s3, a lambda function will be triggered which will start 
-                                   a glue job running pyspark. The data in S3 will then be read by the glue job and written back to the bucket as an upsert. And of course
-                                   we use IAM to configure roles that will allow our services to have the permissions they need to itneract with one another.
-                                </p>
-                                <h2 style="text-align:center;">Creating Source and Destination</h2>
-                                <p>
-                                    The first  and easiest step is to create the RDS instance and the S3 bucket! I used mostly default settings and turned of the option
-                                    to block all public access for the bucket, and set the RDS instance to MySQL. After the RDS instance is created we can connect to it
-                                    from MySQL workbench. Then we populate the database with some records using the following dump file:
-                                    <a href="https://github.com/Piblo99/PySpark---AWS-Master-Big-Data-With-PySpark-and-AWS/blob/master/Dump">[Click here to see]</a>
-                                </p>
-                                <h2 style="text-align:center;">Configuring Database Migration Service</h2>
-                                <p>
-                                    With the Source and Destination complete, we can configure DMS endpoints. The RDS instance we created should be configured as the source, 
-                                    while the S3 instance should be configured as the Destination (Target) Endpoint. After the endpoints are created we simply create a replication 
-                                    instance. Then, we can now create our Migration Task using the endpoints and the replication instance that
-                                    we just made, setting a migration type of "Migrate existing data and replicate ongoing changes"
-                                    We also have to configure the selection rules of the task to use the proper schema and table name from our MySQL database and set the action to "Include."
-                                    Now we just have to create the task and then the data from MySQL will be loaded into S3 as a csv file, and ongoing replication will begin.
-                                </p>
-                                <h2 style="text-align:center;">CDC Glue Job</h2>
-                                <p>
-                                    Next I created the pyspark glue job that performs different actions depending on if records were 
-                                    updated, deleted, or inserted. It also takes into account if it's just a full load of database records.
-                                    All of the code can be seen below:
-                                </p>
-<pre><code class="language-python line-numbers">from awsglue.utils import getResolvedOptions
-import sys
-from pyspark.sql.functions import when
-from pyspark.sql import SparkSession
-
-args = getResolvedOptions(sys.argv,['s3_target_path_key','s3_target_path_bucket'])
-bucket = args['s3_target_path_bucket']
-fileName = args['s3_target_path_key']
-
-print(bucket, fileName)
-
-spark = SparkSession.builder.appName("CDC").getOrCreate()
-inputFilePath = f"s3a://{bucket}/{fileName}"
-finalFilePath = f"s3a://cdc-ouput-pyspark/output"
-
-if "LOAD" in fileName:
-    fldf = spark.read.csv(inputFilePath)
-    fldf = fldf.withColumnRenamed("_c0","id").withColumnRenamed("_c1","FullName").withColumnRenamed("_c2","City")
-    fldf.write.mode("overwrite").csv(finalFilePath)
-else:
-    udf = spark.read.csv(inputFilePath)
-    udf = udf.withColumnRenamed("_c0","action").withColumnRenamed("_c1","id").withColumnRenamed("_c2","FullName").withColumnRenamed("_c3","City")
-    ffdf = spark.read.csv(finalFilePath)
-    ffdf = ffdf.withColumnRenamed("_c0","id").withColumnRenamed("_c1","FullName").withColumnRenamed("_c2","City")
-    
-    for row in udf.collect(): 
-        if row["action"] == 'U':
-        ffdf = ffdf.withColumn("FullName", when(ffdf["id"] == row["id"], row["FullName"]).otherwise(ffdf["FullName"]))      
-        ffdf = ffdf.withColumn("City", when(ffdf["id"] == row["id"], row["City"]).otherwise(ffdf["City"]))
-    
-        if row["action"] == 'I':
-        insertedRow = [list(row)[1:]]
-        columns = ['id', 'FullName', 'City']
-        newdf = spark.createDataFrame(insertedRow, columns)
-        ffdf = ffdf.union(newdf)
-    
-        if row["action"] == 'D':
-        ffdf = ffdf.filter(ffdf.id != row["id"])
-        
-    ffdf.write.mode("overwrite").csv(finalFilePath)   
-</code></pre><br>
-
-                                <h2 style="text-align:center;">Lambda</h2>
-                                <p>
-                                    First I created a Lambda function with a trigger that would run when new files get added to S3. Then 
-                                    I test the trigger, and once I saw that it ran consistently, I edited this function to the code below.
-                                    It passes arguments to the glue job we created earlier and then invokes it for the 
-                                    specific S3 bucket and the file that gets uploaded to S3.
-                                </p>
-
-<pre><code class="language-python line-numbers">import json
-import boto3
-
-def lambda_handler(event, context):
-     
-    bucketName = event["Records"][0]["s3"]["bucket"]["name"]
-    fileName = event["Records"][0]["s3"]["object"]["key"]
-    
-    print(bucketName, fileName)
-        
-    glue = boto3.client('glue')
-
-    response = glue.start_job_run(
-        JobName = 'glueCDC-pyspark',
-        Arguments = {
-            '--s3_target_path_key': fileName,
-            '--s3_target_path_bucket': bucketName
-        } 
-    )
-    
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }    
-</pre></code><br>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
+                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <ol>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                    <li>stepstepstep</li>
+                                </ol>
 							</section>
 
 					</div>
