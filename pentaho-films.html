@@ -46,7 +46,34 @@
                                         data integration tools but pentaho was used for demonstration.
                                     </p>
                                 </header>
+                                <h2 style="text-align:center;">Source and Destination Connections</h2>
+                                <p>
+                                    Before we start doing any Transformations, we need our source and destination!
+                                    For our source we will be using the Sakila sample database, which is well known
+                                    for instructional projects, and the schema for it can be seen below.
+                                </p>
+                                <div class="image main"><img src="images/sakila_full_database_schema_diagram.png" alt="" /></div>
+                                <p>
+                                    For the Destination, I made a schema containing 5 Dimension Tables and 1 Fact Table;
+                                    dim_date, dim_time, dim_customer, dim_film, dim_store, and fact_rental.
+
+                                    With our Source filled with data, and our destination warehouse created, 
+                                    we can move on to the transformation steps and the main job to execute them.
+                                </p>
                                 <h2 style="text-align:center;">Date Dimension</h2>
+                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <p>There is no Date Table in the source database, so the dim_date table should be created from scratch.</p>
+                                <ol>
+                                    <li>The Generate rows step is used to create a column called datein of type Date with a format of yyyy-MM-dd and a value of 2000-01-01 for each row.</li>
+                                    <li>The Add sequence step is used to create a column called valuename that consists of integers incrementing by one, starting with one.</li>
+                                    <li>The calculator step is used to create a new column called dates, with a calculation of Date A + B Days. A is set to datein, and B is set to valuename. The output type and format will be the same as datein. In this same step we can add 3 more columns; the_year, the_month, and the_day. They would have calculations of Year of date A, Month of date A, and Day of month of date A respectively. A in this case would be the dates column, and these three columns will have the type of String.
+                                        The Strings cut step uses the dates column as an In stream Field to create 3 new Out Stream fields called years, months, and days. These 3 new columns are cut from 0 to 4, 5 to 7, and 8 to 10 respectively.</li>
+                                    <li>The Concat fields step is used to concatenate the year, month, and day values to create a date_key column.</li>
+                                    <li>The String Operations step is used trim both sides of the fields: the_year, the_month, and the_day. In this step, the same columns are also given additional padding of length 2 with a pad character of 0.</li>
+                                    <li>The update data types step is used to Rename the following fields: dates to datein, the_year to years, the_month to months, the_day, date_key. This step is also used to change the data tapes of the following columns: dates to Date, the_year to String, the_month String, the_day to String, and date_key to integer. Lastly, this step is used to change the following column lengths: the_year to 4, the_month to 2, the_day to 2, and date_key to 10</li>
+                                    <li>The Table output step is used last and we set the target table to dim_date.</li>
+                                </ol>
+                                <h2 style="text-align:center;">Time Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
                                 <ol>
                                     <li>stepstepstep</li>
@@ -60,7 +87,7 @@
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
                                 </ol>
-                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <h2 style="text-align:center;">Customer Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
                                 <ol>
                                     <li>stepstepstep</li>
@@ -74,7 +101,7 @@
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
                                 </ol>
-                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <h2 style="text-align:center;">Film Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
                                 <ol>
                                     <li>stepstepstep</li>
@@ -88,7 +115,7 @@
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
                                 </ol>
-                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <h2 style="text-align:center;">Store Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
                                 <ol>
                                     <li>stepstepstep</li>
@@ -102,35 +129,7 @@
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
                                 </ol>
-                                <h2 style="text-align:center;">Date Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                </ol>
-                                <h2 style="text-align:center;">Date Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                </ol>
-                                <h2 style="text-align:center;">Date Dimension</h2>
+                                <h2 style="text-align:center;">Rentals Fact</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
                                 <ol>
                                     <li>stepstepstep</li>
