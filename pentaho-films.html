@@ -76,16 +76,21 @@
                                 <h2 style="text-align:center;">Time Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
                                 <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
+                                    <li>The Generate Rows steps are used twice to create an hours column with 24 rows, and a minutes column with 60 rows, with all their values being 0.</li>
+                                    <li>The Add sequence steps are used to increment the hours columns so the values go from 0 to 23, and minutes go from 0 to 59. Then these values are put into new columns called Add_hours and Add_minutes.</li>
+                                    <li>The Select values - drop columns steps are used to convert the Add_hours and Add_minutes column to type String and rename them to hours_id and minutes_id. This step also changes the Length of Add_hours and Add_minutes to 2.</li>
+                                    <li>The Cartesian Join step is used to produce the cartesian product of hours_id and minutes_id.</li>
+                                    <li>The String Operations step is used to add left padding of length 2 with the pad character of 0 to hours_id and minutes_id.</li>
+                                    <li>The Javascript Step is used to assign the concatenation of hours_id + " : " + minutes_id to a new column called time_id.</li>
+                                    <li>The Add constants step is used to create a column called temp_hour that contains rows each having a value of 1.</li>
+                                    <li>The Set value Step is used to create a column of temp_hour called hour_id</li>
+                                    <li>The Select Values Step is used to change temp_hour into an integer.</li>
+                                    <li>The Filter Rows Step is used to Filter our data based on the temp_hour column. If the value of temp_hour is less than 12 the data will be sent to the Add constants AM step, otherwise the data will be sent to the Add constants - PM step.</li>
+                                    <li>The add Constants PM fills the values of the hour_type column to PM.</li>
+                                    <li>The add Constants AM fills the values of the hour_type column to AM.</li>
+                                    <li>The dummy step does nothing and is just to see the output of the two add constant steps before.</li>
+                                    <li>The time_seq step is used to create a column called time_seq that has a value incrementing from 1. It is also used to rename the column time_id to time_desc.</li>
+                                    <li>The Table output step is used last and we set the target table to dim_time.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Customer Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
