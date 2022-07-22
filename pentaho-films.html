@@ -74,7 +74,8 @@
                                     <li>The Table output step is used last and we set the target table to dim_date.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Time Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <div class="image main"><img src="images/pentaho_films_dim_time_steps.png" alt="" /></div>
+                                <p>(This tranformation has more steps not seen in the above image)</p>
                                 <ol>
                                     <li>The Generate Rows steps are used twice to create an hours column with 24 rows, and a minutes column with 60 rows, with all their values being 0.</li>
                                     <li>The Add sequence steps are used to increment the hours columns so the values go from 0 to 23, and minutes go from 0 to 59. Then these values are put into new columns called Add_hours and Add_minutes.</li>
