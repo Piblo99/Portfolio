@@ -102,11 +102,12 @@
                                     <li>The Database lookup steps are used to bring in columns for city_id, country_id, address, city, and country to the warehouse when the ids are matching. </li>
                                     <li>The Value Mapper step Creates a new Column called active_desc, giving it a value of no if active is 0, and yes if active is 1.</li>
                                     <li>The Select Values - order step is used to pull all the columns from the database in the correct order.</li>
+                                    <li>The Data Grid step is used to add some columns with constant values to the data.</li>
                                     <li>The dummy step does nothing and just lets us see the output of the previous step.</li>
                                     <li>The final step is insert / update which is used to upsert any new rows from this data stream to the warehouse when they are edited.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Film Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
+                                <div class="image main"><img src="images/pentaho_films_dim_film_steps.png" alt="" /></div>
                                 <ol>
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
