@@ -109,12 +109,21 @@
                                 <h2 style="text-align:center;">Film Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_film_steps.png" alt="" /></div>
                                 <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
+                                    <li>The get max date step is used to select the maximum last_update value from dim_customer</li>
+                                    <li>The Table input customer step is used to select all the columns from the customer table from the sakila database where the last_update in the films table is greater than the last_update from the films dimension in the warehouse.</li>
+                                    <li>The select values step is used to gather all the values with their associated formats and types from the database.</li>
+                                    <li>The Database lookup steps are used to bring in columns for name and rename it to lang_name to the warehouse when language_id is matching. </li>
+                                    <li>The Number range step is used to change the values of length_desc based on the values of length. 0 to 75 indicating short, 76 to 120 indicating medium, otherwise the value of length_desc will be long.</li>
+                                    <li>The Replace null value step is used to replace nulls in the columns of type string to NA and type integer to 0.</li>
+                                    <li>The Merge Join step is used to </li>
+                                    <li>The Database lookup steps are used to bring in columns for category_id to the warehouse when film_id is matching. </li>
+                                    <li>The table categories step is used to select the category_id, name, and last_update from category</li>
+                                    <li>The sort rows steps are used to sort the data by category_id in ascending order.</li>
+                                    <li>The Merge Join step is used to perform an inner join on the two incoming sort rows steps.</li>
+                                    <li>The Split field to rows step is used to split the field called special_featurer using a comma as the delimiter. The resulting field name will be split_special_feature</li>
+                                    <li>The Add Constants step is used to add a field called special_yes which has a 1 for all row values.</li>
+                                    <li>The Row denormaliser step is used with the key field of split_special_feature to group by film_id and has the target fieldnames of has trailers, has Commentaries, has behind the scenes, and has deleted Scenes. These have key values of Trailers, Commentaries, Behind the Scenes, and Deleted Scenes respectively. Each ot these targest has the value fieldname of special_yes and data Types of String. </li>
+                                    <li>The Has columns = 0 step is used to turn all the nulles of the new fields we added in the previous step to 0.</li>
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
                                     <li>stepstepstep</li>
