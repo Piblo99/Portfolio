@@ -124,10 +124,8 @@
                                     <li>The Add Constants step is used to add a field called special_yes which has a 1 for all row values.</li>
                                     <li>The Row denormaliser step is used with the key field of split_special_feature to group by film_id and has the target fieldnames of has trailers, has Commentaries, has behind the scenes, and has deleted Scenes. These have key values of Trailers, Commentaries, Behind the Scenes, and Deleted Scenes respectively. Each ot these targest has the value fieldname of special_yes and data Types of String. </li>
                                     <li>The Has columns = 0 step is used to turn all the nulles of the new fields we added in the previous step to 0.</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
+                                    <li>The Select Values -order step is then used to pick out all the data where film_id matches betweent he database and warehouse.</li>
+                                    <li>Lastly, the Insert/update step is used to take the data from the flow and move it to the dim_film target table as an upsert.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Store Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
