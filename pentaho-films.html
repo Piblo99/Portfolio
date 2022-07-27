@@ -146,16 +146,12 @@
                                 <h2 style="text-align:center;">Staff Dimension</h2>
                                 <div class="image main"><img src="images/pentaho_films_dim_staff_steps.png" alt="" /></div>
                                 <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
+                                    <li>The table input - Staff step is used to bring in all the columns from the staff table in the Sakila database.</li>
+                                    <li>The Select Values step is used to give the values the correct types, lengths, and formats as well as some other features.</li>
+                                    <li>The value mapper is used to map the values of 1 and 0 to active and not active respectively from the active column to the active_desc column.</li>
+                                    <li>The first table output step moves this data from the stream to dim_staff table in the warehouse.</li>
+                                    <li>The Data Grid step is used to create default values for all the columns in the staff table.</li>
+                                    <li>The table output 2 step moves these default values to the data warehouse.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Rentals Fact</h2>
                                 <div class="image main"><img src="images/pentaho_films_fact_rentals_steps.png" alt="" /></div>
@@ -170,62 +166,27 @@
                                     <li>The calc rental hours step is used to calculate the rental hours using a datediff function on rental date and return date. The results will be the value of a rental_hours column and this also produces an is_return column value by checking if the return_date is not equal to null.</li>
                                     <li>The temp Dates step is used to create a date_key column in the form of yyyy-mm-dd as a copy of the dates field in a new field called rental_date. This new field will be of type String.</li>
                                     <li>The Strings cut step uses the dates column as an In stream Field to create 3 new Out Stream fields called years, months, and days. These 3 new columns are cut from 0 to 4, 5 to 7, and 8 to 10 respectively.</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
+                                    <li>The Concat Fields step is used to concatenate the year month and date fields to make a date key column. </li>
+                                    <li>The hours and minutes step is used to creates fields called hours and mionutes using calculations fromt he rental_date field.</li>
+                                    <li>The Database lookup - time step uses dim_time as a lookup table to check for matching hours_ids and minutes_ids with teh hours and minutes fields respectively, and put a -1 if not.</li>
+                                    <li>The Select Values - change names step is used to remove the following fields from the data stream: staff_id, film_id, store_id, hours, minutes, and dates.</li>
+                                    <li>The Insert / Update step creates a connection with the warehouse and sets the target table to fact_rental, and upserts all the data from the stream to the target table.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Payments Fact</h2>
                                 <div class="image main"><img src="images/pentaho_films_fact_payments_steps.png" alt="" /></div>
                                 <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
+                                    <li>The Get Max date target step is used to get the latest date from fact_rental.</li>
+                                    <li>The Table input payments grabs all the data from the payment table in the sakila database.</li>
+                                    <li>The Database lookup - staff payment step uses dim_staff as a lookup table to check for matching staff_ids and put a -1 if not.</li>
+                                    <li>The Select Values - change step is used gather all the data needed from the stream and rename the last_update column to payment_last_update.</li>
+                                    <li>The Update step is used to target the fact_rental columns on matchin rental_ids and provide updates wherever changes have occured.</li>
                                 </ol>
                                 <h2 style="text-align:center;">Main Job</h2>
                                 <div class="image main"><img src="images/pentaho_films_main_job_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                    <li>stepstepstep</li>
-                                </ol>
+                                <p>This is the Job that contains all the transoformations that were created previously, and error handeling steps before them.
+                                    The job checks for correct database connections, existence of files, and the file size of the stream to make sure data is actually coming in.
+                                    We can schedule this job using windows task manager on a server to run every so often to keep a data warehouse up to date from our OLTP database.
+                                </p>
 							</section>
 
 					</div>
