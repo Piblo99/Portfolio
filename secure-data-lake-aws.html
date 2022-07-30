@@ -207,26 +207,47 @@
                                 <h2 style="text-align:center;">Prepare our data for analytics and reporting</h2>
                                 <h4 style="text-align:center;">Setting up our Amazon Redshift cluster</h4>
                                 <p>
-
+                                    I went to the Amazon Redshift Service and Created a Free Trial Cluster with the default settings.
                                 </p>
-
+                                <div class="image main"><img src="images/Redshift_Cluster.png" alt="" /></div>
                                 <br>
                                 <h4 style="text-align:center;">Author ETL job for moving data from the data lake into the Redshift warehouse</h4>
                                 <p>
-
+                                    For this section the first step was to go into the Redshift query editor v2 and create a new database called test, and within that
+                                    database, I created a new table called customer. I created fields id, firstname, lastname, and gender. 
+                                    I gave all the fields the appropriate datatypes.
+                                    Then I created a new connection in AWS Glue specifying the cluster and the respective credentials required to allow glue to access the data warehouse.
+                                    I tested the connection with the myWorkflowRole IAM Role.
+                                    I created a new AWS Glue crawler called warehouse_customer_ingest. The data store was set to JDBC and the connection was set to redshift.
+                                    The path was set to test/public/customer.
+                                    The Crawler IAM Roles was set to myWorkflowRole.
+                                    Frequency was set to run on demand.
+                                    The Database was set to demo-raw and the Prefix was set to redshift_.
+                                    I then finished creating the crawler and verified the redshift_test_public_customer table was added to the data catalog in AWS Lake Formation.
+                                    Next I went to AWS Glue Studio and created a new Job with a blank canvas.
+                                    First an AWS Glue Data Catalog Data Source node was created and I set the database to demo-processed, and the Table to processed_customers.
+                                    Then I created a transformation node to do some renaming of fields and changing the datatype of the id field to match the schema of the table in the redshift cluster test database.
+                                    Lastly, I created a Data target - Redshift node as my destination and set the database propert to be demo-raw and the Table property to be redshift_test_public_customer, and changed the handling of new records to be insert and update.
+                                    I changed the number of workers to 3 and retries to 0, then I saved the job and ran it.
                                 </p>
 
                                 <br>
                                 <h4 style="text-align:center;">Using Redshift Spectrum for querying data located in our data lake</h4>
                                 <p>
-
+                                    Redshift Spectrum is a feature that lets us query data in our lake without having to move any new or duplicate data to our existing data warehouse.
+                                    For this section I created a schema in my test database in the same redshift cluster. 
+                                    I set the Schema name to processed and the Glue database name to demo-processed. I gave the schema appropriate IAM Roles to access the Glue database.
+                                    I then ran a query against the tables that were created with this schema successfully which was a query ran against data not yet in our data warehouse.
                                 </p>
 
                                 <br>
-                                <h2 style="text-align:center;">Using Amazon Macie for managing data security and privacy in our data lake.</h2>
+                                <h2 style="text-align:center;">Using Amazon Macie for managing data security and privacy in our data lake</h2>
                                 <p>
-
+                                    For this section I created an Amazon Macie Job on the demo-lakeformation-raw S3 bucket called 
+                                    datalake_raw_PII_Job. I added a custom PII identifier with regex to detect phone numbers and ran the job, 
+                                    Macie successfully detected phonenumbers as well as other information such as names and addresses.
                                 </p>
+                                <div class="image main"><img src="images/Macie_Findings.png" alt="" /></div>
 							</section>
 
 					</div>
