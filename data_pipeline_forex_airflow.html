@@ -39,40 +39,20 @@
 						<!-- Post -->
 							<section class="post">
 								<header class="major">
-									<h1>Serverless Data<br />
-                                    Engineering Pipeline: AWS</h1>
+									<h1>Apache Airflow<br />
+                                    Forex Data Pipeline</h1>
 								<p>
-                                    The objective of this project was create serverless data pipeline
-									that would use DynamoDB as a source for data, and push that data into 
-                                    AWS SQS using a producer lambda function. Then the data in SQS would be
-                                    consumed by a consumer lambda function. The consumer lambda function sits idly
-                                    waiting for the producer to run from a cloudwatch event bridge trigger every 1 minutes.
-                                    As soon as the producer is pushed to SQS the consumer should take those messages in the Queue
-                                    and push them to the AWS Comprehend service. AWS comprehend would perform sentiment analysis
-                                    on these messages using wikipedia searches on the names of FANG companies.
-                                    After AWS Comprehend generates a sentiment score, the consumer function generats a CSV
-                                    file in an Amazon S3 bucket containing the name of the company and the sentiment score
-                                    for each message consumed.
+                                    This is a flow showing the complete process of the pipeline in order.
                                 </p>
-                                <div class="image main"><img src="images/ngpipeline.png" alt="" /></div>
+                                <div class="image main"><img src="images/forex_flow.png" alt="" /></div>
 								</header>
-                                <h2 style="text-align:center;">Setting up AWS Environment</h2>
+
+                                <h2 style="text-align:center;">Forex Pipeline Architecture</h2>
                                 <p>
-                                   Firstly, I used AWS IAM to create a role called admin with administrator access permission.
-                                   This role would later be used for execution roles for lambda functions.
-                                   Then I created a DynamoDB table called fang, which I filled with items that each had one string value called name. 
-                                   I created items with name values: Facebook, Amazon (Company) [just Amazon would cause a disambiguation error in the consumer later], Netflix, and Google. 
-                                   Next, I created an SQS queue named producer and set the visibility timeout window to 2 minutes.
-                                   [I set this visibility window to 2 but just setting it to above 1 minute is fine. 
-                                   it just needs to be greater than the timeout for the consumer function]. I then created
-                                   an S3 bucket that was used to hold the packages for my lambda functions and the output of the pipeline.
-                                   The S3 bucket needed to have public access allowed so the lambda functions could access it.
-                                   Lastly for the setup of this project, I used the Cloud9 service to create an environment called serverless-lambda using an EC2
-                                   instance running amazon linux 2. This instance's volume starts with 10 GBs but it needed to be upgraded to 20 GBs
-                                   in order for the code for the producer to be tested to test code. The consumer function could not be tested inside of the
-                                   Cloud9 environment. After you modify the volume to have 20 GBs, reboot the instance being used for the Cloud9 environment.
-                                   Then I used <code>df -h</code> in the bash terminal for the environment to confirm that it has 20 GBs in the root volume.
+                                    
                                 </p>
+                                <div class="image main"><img src="images/forex_architecture.png" alt="" /></div>
+
                                 <h2 style="text-align:center;">Creating the Lambda SAM Applications</h2>
                                 <p>
                                     The next step is to create our producer application! I simply went into the serverless-lambda environment, and
