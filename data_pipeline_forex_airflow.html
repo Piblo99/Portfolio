@@ -47,246 +47,893 @@
                                 <div class="image main"><img src="images/forex_flow.png" alt="" /></div>
 								</header>
 
-                                <h2 style="text-align:center;">Forex Pipeline Architecture </h2>
+                                <h2 style="text-align:center;">Forex Pipeline Architecture</h2>
                                 <p>
-
+                                    This picture shows the architecture of the Forex Data Pipeline.
                                 </p>
                                 <div class="image main"><img src="images/forex_architecture.png" alt="" /></div>
 
-                                <h2 style="text-align:center;">Creating the Lambda SAM Applications</h2>
+                                <h2 style="text-align:center;">Defining the DAG</h2>
                                 <p>
-                                    The next step is to create our producer application! I simply went into the serverless-lambda environment, and
-                                    clicked Create Lambda SAM Application in the us-east-1 Region. I set the runtime to python 3.8, architecture to x86_64, 
-                                    selected the Hello world template, and then set the name to consumer. After the application was created, I located the 
-                                    app.py file within the hello_world folder and replaced the template code with the following: 
+                                    The first step is to create a file called "forex_data_pipeline.py". 
+                                    The code within the file can be seen below.
+                                    the first 2 lines imports the necessary components needed to create this DAG.
+                                     Next I created a dictionary called default_args which passes values for specific parameters
+                                    to the tasks that will belong to the following DAG.
+                                    Next I created the DAG and passed in it's name, start date, schedule interval, 
+                                    and default args. I also set the catchup parameter to False to tell airflow 
+                                    to not run the DAG  in the period between the start date and before the current date. 
+                                    With this Dag set up, I could now start adding operators to it.
                                 </p>
 <pre><code class="language-python line-numbers">
-"""
-Dynamo to SQS
-"""
+from airflow import DAG
 
-import boto3
-import json
+from datetime import datetime, timedelta
 
-DYNAMODB = boto3.resource("dynamodb")
-TABLE = "fang"
-QUEUE = "producer"
-SQS = boto3.client("sqs")
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
 
-# SETUP LOGGING
-import logging
-from pythonjsonlogger import jsonlogger
-
-LOG = logging.getLogger()
-LOG.setLevel(logging.INFO)
-logHandler = logging.StreamHandler()
-formatter = jsonlogger.JsonFormatter()
-logHandler.setFormatter(formatter)
-LOG.addHandler(logHandler)
-
-
-def scan_table(table):
-    """Scans table and return results"""
-
-    LOG.info(f"Scanning Table {table}")
-    producer_table = DYNAMODB.Table(table)
-    response = producer_table.scan()
-    items = response["Items"]
-    LOG.info(f"Found {len(items)} Items")
-    return items
-
-
-def send_sqs_msg(msg, queue_name, delay=0):
-    """Send SQS Message
-    Expects an SQS queue_name and msg in a dictionary format.
-    Returns a response dictionary.
-    """
-
-    queue_url = SQS.get_queue_url(QueueName=queue_name)["QueueUrl"]
-    queue_send_log_msg = "Send message to queue url: %s, with body: %s" % (
-        queue_url,
-        msg,
-    )
-    LOG.info(queue_send_log_msg)
-    json_msg = json.dumps(msg)
-    response = SQS.send_message(
-        QueueUrl=queue_url, MessageBody=json_msg, DelaySeconds=delay
-    )
-    queue_send_log_msg_resp = "Message Response: %s for queue url: %s" % (
-        response,
-        queue_url,
-    )
-    LOG.info(queue_send_log_msg_resp)
-    return response
-
-
-def send_emissions(table, queue_name):
-    """Send Emissions"""
-
-    items = scan_table(table=table)
-    for item in items:
-        LOG.info(f"Sending item {item} to queue: {queue_name}")
-        response = send_sqs_msg(item, queue_name=queue_name)
-        LOG.debug(response)
-
-
-def lambda_handler(event, context):
-    """
-    Lambda entrypoint
-    """
-
-    extra_logging = {"table": TABLE, "queue": QUEUE}
-    LOG.info(f"event {event}, context {context}", extra=extra_logging)
-    send_emissions(table=TABLE, queue_name=QUEUE)
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+    None
 </code></pre><br>
-                                <p>
-                                    I now needed to install the required packages to run the code. I went to my Bash terminal and ran the following commands:
-                                    <br><code>cd ~/environment/producer/hello_world</code>
-                                    <br><code>pip3 install python-json-logger -t ./</code>
-                                    <br><code>pip3 install boto3 -t ./</code>
-                                    <br>This code could now be tested inside of the serverless-lambda environment. I could verify that it ran correctly 
-                                    by looking at log messages in the AWS toolkit terminal, and or checking the amount of messages in the producer SQS queue 
-                                    I saw that in the producer Queue that 4 messages had arrived, which is the amount of items in the fang table. 
-                                    None of the logs showed any issues so i moved on to creating the consumer. It was the same process as above but I named 
-                                    the SAM application consumer, and I replaced the app.py file's code with the following:
-                                </p>
+
+
+<h2 style="text-align:center;">Checking if the API is available - HttpSensor</h2>
+<p>
+    The First Task I added serves the purpose of verifying if a URL is available or not, 
+    and if so it also checks if the contents of that URL are available. 
+    This can be accomplished using the HttpSensor Operator. I created an HttpSensor 
+    called is_forex_rates_available and gave it a response_check parameter that 
+    checks if "rates" is in the json response from the given endpoint. 
+    This task has a poke_interval of 5 so it checks the URL every 5 seconds, 
+    and will timeout if not given a response in 20 seconds.
+</p>
+
+
 <pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.providers.http.sensors.http import HttpSensor
+
+from datetime import datetime, timedelta
+
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
+
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+</code></pre><br>
+
+<h2 style="text-align:center;">Checking if the currency file is available - FileSensor</h2>
+<p>
+    Next I needed to add a task that checks if a specific file is available at a specific location within 
+    my file system. The FileSensor Operator is perfect for this task. forex_currencies.csv is set as the path 
+    for the file that will be checked within the docker container that airflow is running on.
+</p>
+
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+
+from datetime import datetime, timedelta
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
+
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )    
+</code></pre><br>
+
+<h2 style="text-align:center;">Downloading the forex rates from the API - PythonOperator</h2>
+<p>
+    For the next Task, I used the Python Operator to first open the forex_currencies.csv file 
+    and download pairs of currencies corresponding to a base currency that is picked, either USD or EUR.
+</p>
+
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python_operator import PythonOperator
+
+from datetime import datetime, timedelta
+
+import csv
+import requests
 import json
 
-import boto3
-import botocore
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
 
-# import pandas as pd
-import pandas as pd
-import wikipedia
-from io import StringIO
+# Download forex rates according to the currencies we want to watch
+# described in the file forex_currencies.csv
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
 
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
 
-# SETUP LOGGING
-import logging
-from pythonjsonlogger import jsonlogger
-boto3.set_stream_logger('')
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
 
-# S3 BUCKET
-REGION = "us-east-1"
-
-def sqs_connection():
-    """Creates an SQS Connection which defaults to global var REGION"""
-
-    sqs_client = boto3.client("sqs", region_name=REGION)
-    return sqs_client
-
-
-def delete_sqs_msg(queue_name, receipt_handle):
-
-    sqs_client = sqs_connection()
-    queue_url = sqs_client.get_queue_url(QueueName=queue_name)["QueueUrl"]
-    response = sqs_client.delete_message(
-        QueueUrl=queue_url, ReceiptHandle=receipt_handle
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
     )
-    return response
 
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
 
-def names_to_wikipedia(names):
-
-    wikipedia_snippit = []
-    for name in names:
-        wikipedia_snippit.append(wikipedia.summary(name, sentences=1, auto_suggest=False))
-    df = pd.DataFrame({"names": names, "wikipedia_snippit": wikipedia_snippit})
-    return df
-
-
-def create_sentiment(row):
-    comprehend = boto3.client(service_name="comprehend")
-    payload = comprehend.detect_sentiment(Text=row, LanguageCode="en")
-    sentiment = payload["Sentiment"]
-    return sentiment
-
-
-def apply_sentiment(df, column="wikipedia_snippit"):
-    """Uses Pandas Apply to Create Sentiment Analysis"""
-
-    df["Sentiment"] = df[column].apply(create_sentiment)
-    return df
-
-
-### S3 ###
-
-
-def write_s3(df, bucket, name):
-    """Write S3 Bucket"""
-
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer)
-    s3_resource = boto3.resource("s3")
-    filename = f"{name}_sentiment.csv"
-    s3_resource.Object(bucket, filename).put(Body=csv_buffer.getvalue())
-
-
-def lambda_handler(event, context):
-    """Entry Point for Lambda"""
-    receipt_handle = event["Records"][0]["receiptHandle"]  # sqs message
-    event_source_arn = event["Records"][0]["eventSourceARN"]
-
-    names = []  # Captured from Queue
-
-    # Process Queue
-    for record in event["Records"]:
-        body = json.loads(record["body"])
-        company_name = body["name"]
-
-        # Capture for processing
-        names.append(company_name)
-
-        extra_logging = {"body": body, "company_name": company_name}
-        qname = event_source_arn.split(":")[-1]
-        extra_logging["queue"] = qname
-        delete_sqs_msg(queue_name=qname, receipt_handle=receipt_handle)
-
-    # Make Pandas dataframe with wikipedia snippts
-    df = names_to_wikipedia(names)
-
-    # Perform Sentiment Analysis
-    df = apply_sentiment(df)
-
-    # Write result to S3
-    write_s3(df=df, bucket="peepee", name=names)
+    downloading_rates = PythonOperator(
+            task_id="downloading_rates",
+            python_callable=download_rates
+    )
 </code></pre><br>
-                                <p>
-                                    This also needed packages installed so i ran the following commands:
-                                    <br><code>cd ~/environment/consumer/hello_world</code>
-                                    <br><code>pip3 install python-json-logger -t ./</code>
-                                    <br><code>pip3 install boto3 -t ./</code>
-                                    <br><code>pip3 install wikipedia -t ./</code>
-                                    <br>[installing pandas in the bash terminal and then trying to run this code after it is deployed produced an error, so I added it as a layer later on instead.]
-                                </p>
-                                <h2 style="text-align:center;">Deploying and configuring the SAM applications</h2>
-                                <p>
-                                    In the AWS explorer window i right clicked the region (us-east-1) and selected Deploy SAM Application.
-                                    I selected producer/template.yaml and then selected the S3 bucket I created earlier.
-                                    Then set the stack name to producer and hit enter. Once the producer was deploted, I did the same process
-                                    for the consumer but set the stack name to consumer. Now that both of the applications were deployed,
-                                    I went into the AWS Lambda service and selected the producer function. I changed the execution role to the admin
-                                    role that I created earlier. Then i added an EventBridge(cloudwatch events) trigger to the function. 
-                                    I configured the trigger to use a new schedule expression of rate(1 minute) so the function would automatically run
-                                    every minute.
-                                    <br>
-                                    <br>
-                                    Next i configured the consumer function. I applied the admin execution role, then added pandas layer that was compatible
-                                    with my runtime by specifying the ARN: <br> arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p38-pandas:3
-                                    <br>
-                                    Then I changed the timeout for the function in the general configuration from 3 seconds to 1 min
-                                    [the function takes so long to run at some points that a timout of 3 seconds will just make it quit without returning any outputs].
-                                    Lastly, I set an SQS trigger on the function and set it to target the producer queue.
-                                </p>
-                                <h2 style="text-align:center;">Running the Functions</h2>
-								<p>
-                                    After the Lambda functions were configured, they ran fully automatically. The consumer ran every minute,
-                                    putting 4 new messages into the queue for each run. When no messages were detected in SQS, the consumer function would run 
-                                    and it would look through the names of the items in the messages. it would search up the wikipedia pages of those names, and return 
-                                    the first sentence from them. This sentence was then sent to the AWS Comprehend service to have sentiment analysis performed on it.
-                                    The name, wikipedia snippet, and sentiment were then all written into a csv file for each message consumed, and then placed into an s3 bucket.
-                                </p>
+
+<h2 style="text-align:center;">Save the forex rates into HDFS - BashOperator</h2>
+<p>
+    Now that we are able to download the forex rates to a forex_rates.json file,
+    We can create a forex folder in hdfs and move this file from our local file system to hdfs.
+</p>
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python_operator import PythonOperator
+from airflow.operators.bash_operator import BashOperator
+from datetime import datetime, timedelta
+
+import csv
+import requests
+import json
+
+default_args = {
+            "owner": "airflow",
+            "start_date": datetime(2019, 1, 1),
+            "email_on_failure": False,
+            "email_on_retry": False,
+            "email": "youremail@host.com",
+            "retries": 1,
+            "retry_delay": timedelta(minutes=5)
+        }
+
+# Download forex rates according to the currencies we want to watch
+# described in the file forex_currencies.csv
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
+
+with DAG(dag_id="forex_data_pipeline_v_5", schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+    
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        method="GET",
+        http_conn_id="forex_api",
+        endpoint="latest",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
+
+    downloading_rates = PythonOperator(
+            task_id="downloading_rates",
+            python_callable=download_rates
+    )
+
+    saving_rates = BashOperator(
+        task_id="saving_rates",
+        bash_command="""
+            hdfs dfs -mkdir -p /forex && \
+            hdfs dfs -put -f $AIRFLOW_HOME/dags/files/forex_rates.json /forex
+            """
+    )
+</code></pre><br>
+
+<h2 style="text-align:center;">Create the Hive table forex_rates - HiveOperator</h2>
+<p>
+    Now that our rates are in HDFS I need a way to interact with these rates using SQL-like queries.
+    Apache hive can help with this, so naturally I used the Hive Operator within apache airflow for this task.
+    The following task creates a hive table with a schema for the corresponding forex rates in the json file we pushed 
+    into hdfs.
+</p>
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.sensors.http_sensor import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python_operator import PythonOperator
+from airflow.providers.apache.hive.operators.hive import HiveOperator
+
+from datetime import datetime, timedelta
+
+import csv
+import requests
+import json
+
+default_args = {
+            "owner": "airflow",
+            "start_date": datetime(2019, 1, 1),
+            "email_on_failure": False,
+            "email_on_retry": False,
+            "email": "youremail@host.com",
+            "retries": 1,
+            "retry_delay": timedelta(minutes=5)
+        }
+
+# Download forex rates according to the currencies we want to watch
+# described in the file forex_currencies.csv
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
+
+with DAG(dag_id="forex_data_pipeline_v_6", schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+    
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        method="GET",
+        http_conn_id="forex_api",
+        endpoint="latest",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
+
+    downloading_rates = PythonOperator(
+            task_id="downloading_rates",
+            python_callable=download_rates
+    )
+
+    saving_rates = BashOperator(
+        task_id="saving_rates",
+        bash_command="""
+            hdfs dfs -mkdir -p /forex && \
+            hdfs dfs -put -f $AIRFLOW_HOME/dags/files/forex_rates.json /forex
+            """
+    )
+
+    creating_forex_rates_table = HiveOperator(
+        task_id="creating_forex_rates_table",
+        hive_cli_conn_id="hive_conn",
+        hql="""
+            CREATE EXTERNAL TABLE IF NOT EXISTS forex_rates(
+                base STRING,
+                last_update DATE,
+                eur DOUBLE,
+                usd DOUBLE,
+                nzd DOUBLE,
+                gbp DOUBLE,
+                jpy DOUBLE,
+                cad DOUBLE
+                )
+            ROW FORMAT DELIMITED
+            FIELDS TERMINATED BY ','
+            STORED AS TEXTFILE
+        """
+    )
+</code></pre><br>
+
+<h2 style="text-align:center;">Process the Forex Rates with spark - SparkSubmitOperator</h2>
+<p>
+    We have the hive table with the correct schema now, but I still needed to execute a spark job
+    to put the data into the table. I needed to use the spark submit operator to accomplish this task.
+    This operator lets me perform some processing on the data and append it to a hive table.
+</p>
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+from airflow.providers.apache.hive.operators.hive import HiveOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+
+from datetime import datetime, timedelta
+import csv
+import requests
+import json
+
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
+
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
+
+def _get_message() -> str:
+    return "Hi from forex_data_pipeline"
+
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
+
+    downloading_rates = PythonOperator(
+        task_id="downloading_rates",
+        python_callable=download_rates
+    )
+
+    saving_rates = BashOperator(
+        task_id="saving_rates",
+        bash_command="""
+            hdfs dfs -mkdir -p /forex && \
+            hdfs dfs -put -f $AIRFLOW_HOME/dags/files/forex_rates.json /forex
+        """
+    )
+
+    creating_forex_rates_table = HiveOperator(
+        task_id="creating_forex_rates_table",
+        hive_cli_conn_id="hive_conn",
+        hql="""
+            CREATE EXTERNAL TABLE IF NOT EXISTS forex_rates(
+                base STRING,
+                last_update DATE,
+                eur DOUBLE,
+                usd DOUBLE,
+                nzd DOUBLE,
+                gbp DOUBLE,
+                jpy DOUBLE,
+                cad DOUBLE
+                )
+            ROW FORMAT DELIMITED
+            FIELDS TERMINATED BY ','
+            STORED AS TEXTFILE
+        """
+    )
+
+    forex_processing = SparkSubmitOperator(
+        task_id="forex_processing",
+        application="/opt/airflow/dags/scripts/forex_processing.py",
+        conn_id="spark_conn",
+        verbose=False
+    )
+</code></pre><br>
+
+<h2 style="text-align:center;">Send email notifications - EmailOperator</h2>
+<p>
+    The data can now successfully be extracted, transformed, and loaded from a source to a destination.
+    It would be nice to be able to recieve email notifications. The Email Operator was perfect for this task.
+</p>
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+from airflow.providers.apache.hive.operators.hive import HiveOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.operators.email import EmailOperator
+
+from datetime import datetime, timedelta
+import csv
+import requests
+import json
+
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
+
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
+
+def _get_message() -> str:
+    return "Hi from forex_data_pipeline"
+
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
+
+    downloading_rates = PythonOperator(
+        task_id="downloading_rates",
+        python_callable=download_rates
+    )
+
+    saving_rates = BashOperator(
+        task_id="saving_rates",
+        bash_command="""
+            hdfs dfs -mkdir -p /forex && \
+            hdfs dfs -put -f $AIRFLOW_HOME/dags/files/forex_rates.json /forex
+        """
+    )
+
+    creating_forex_rates_table = HiveOperator(
+        task_id="creating_forex_rates_table",
+        hive_cli_conn_id="hive_conn",
+        hql="""
+            CREATE EXTERNAL TABLE IF NOT EXISTS forex_rates(
+                base STRING,
+                last_update DATE,
+                eur DOUBLE,
+                usd DOUBLE,
+                nzd DOUBLE,
+                gbp DOUBLE,
+                jpy DOUBLE,
+                cad DOUBLE
+                )
+            ROW FORMAT DELIMITED
+            FIELDS TERMINATED BY ','
+            STORED AS TEXTFILE
+        """
+    )
+
+    forex_processing = SparkSubmitOperator(
+        task_id="forex_processing",
+        application="/opt/airflow/dags/scripts/forex_processing.py",
+        conn_id="spark_conn",
+        verbose=False
+    )
+
+    send_email_notification = EmailOperator(
+        task_id="send_email_notification",
+        to="paulhankins99@gmail.com",
+        subject="forex_data_pipeline",
+        html_content="<h3>forex_data_pipeline</h3>"
+    )
+</code></pre><br>
+
+
+<h2 style="text-align:center;">Send Slack Notifications - SlackWebhookOperator</h2>
+<p>
+    Slack webhooks can be used to send another notification. I used the slack webhook operator to do just that.
+</p>
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+from airflow.providers.apache.hive.operators.hive import HiveOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.operators.email import EmailOperator
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+
+from datetime import datetime, timedelta
+import csv
+import requests
+import json
+
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
+
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
+
+def _get_message() -> str:
+    return "Hi from forex_data_pipeline"
+
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
+
+    downloading_rates = PythonOperator(
+        task_id="downloading_rates",
+        python_callable=download_rates
+    )
+
+    saving_rates = BashOperator(
+        task_id="saving_rates",
+        bash_command="""
+            hdfs dfs -mkdir -p /forex && \
+            hdfs dfs -put -f $AIRFLOW_HOME/dags/files/forex_rates.json /forex
+        """
+    )
+
+    creating_forex_rates_table = HiveOperator(
+        task_id="creating_forex_rates_table",
+        hive_cli_conn_id="hive_conn",
+        hql="""
+            CREATE EXTERNAL TABLE IF NOT EXISTS forex_rates(
+                base STRING,
+                last_update DATE,
+                eur DOUBLE,
+                usd DOUBLE,
+                nzd DOUBLE,
+                gbp DOUBLE,
+                jpy DOUBLE,
+                cad DOUBLE
+                )
+            ROW FORMAT DELIMITED
+            FIELDS TERMINATED BY ','
+            STORED AS TEXTFILE
+        """
+    )
+
+    forex_processing = SparkSubmitOperator(
+        task_id="forex_processing",
+        application="/opt/airflow/dags/scripts/forex_processing.py",
+        conn_id="spark_conn",
+        verbose=False
+    )
+
+    send_email_notification = EmailOperator(
+        task_id="send_email_notification",
+        to="paulhankins99@gmail.com",
+        subject="forex_data_pipeline",
+        html_content="<h3>forex_data_pipeline</h3>"
+    )
+
+    send_slack_notification = SlackWebhookOperator(
+        task_id="send_slack_notification",
+        http_conn_id="slack_conn",
+        message=_get_message(),
+        channel="#monitoring"
+    )
+</code></pre><br>
+
+<h2 style="text-align:center;">Add dependencies between tasks</h2>
+<p>
+    The last thing to do is to specify the dependencies between the tasks so airflow can know in what order to run them.
+</p>
+
+<pre><code class="language-python line-numbers">
+from airflow import DAG
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.sensors.filesystem import FileSensor
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+from airflow.providers.apache.hive.operators.hive import HiveOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.operators.email import EmailOperator
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+
+from datetime import datetime, timedelta
+import csv
+import requests
+import json
+
+default_args = {
+    "owner": "airflow",
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "email": "admin@localhost.com",
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5)
+}
+
+def download_rates():
+    BASE_URL = "https://gist.githubusercontent.com/marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b/raw/"
+    ENDPOINTS = {
+        'USD': 'api_forex_exchange_usd.json',
+        'EUR': 'api_forex_exchange_eur.json'
+    }
+    with open('/opt/airflow/dags/files/forex_currencies.csv') as forex_currencies:
+        reader = csv.DictReader(forex_currencies, delimiter=';')
+        for idx, row in enumerate(reader):
+            base = row['base']
+            with_pairs = row['with_pairs'].split(' ')
+            indata = requests.get(f"{BASE_URL}{ENDPOINTS[base]}").json()
+            outdata = {'base': base, 'rates': {}, 'last_update': indata['date']}
+            for pair in with_pairs:
+                outdata['rates'][pair] = indata['rates'][pair]
+            with open('/opt/airflow/dags/files/forex_rates.json', 'a') as outfile:
+                json.dump(outdata, outfile)
+                outfile.write('\n')
+
+def _get_message() -> str:
+    return "Hi from forex_data_pipeline"
+
+with DAG("forex_data_pipeline", start_date=datetime(2021, 1 ,1), 
+    schedule_interval="@daily", default_args=default_args, catchup=False) as dag:
+
+    is_forex_rates_available = HttpSensor(
+        task_id="is_forex_rates_available",
+        http_conn_id="forex_api",
+        endpoint="marclamberti/f45f872dea4dfd3eaa015a4a1af4b39b",
+        response_check=lambda response: "rates" in response.text,
+        poke_interval=5,
+        timeout=20
+    )
+
+    is_forex_currencies_file_available = FileSensor(
+        task_id="is_forex_currencies_file_available",
+        fs_conn_id="forex_path",
+        filepath="forex_currencies.csv",
+        poke_interval=5,
+        timeout=20
+    )
+
+    downloading_rates = PythonOperator(
+        task_id="downloading_rates",
+        python_callable=download_rates
+    )
+
+    saving_rates = BashOperator(
+        task_id="saving_rates",
+        bash_command="""
+            hdfs dfs -mkdir -p /forex && \
+            hdfs dfs -put -f $AIRFLOW_HOME/dags/files/forex_rates.json /forex
+        """
+    )
+
+    creating_forex_rates_table = HiveOperator(
+        task_id="creating_forex_rates_table",
+        hive_cli_conn_id="hive_conn",
+        hql="""
+            CREATE EXTERNAL TABLE IF NOT EXISTS forex_rates(
+                base STRING,
+                last_update DATE,
+                eur DOUBLE,
+                usd DOUBLE,
+                nzd DOUBLE,
+                gbp DOUBLE,
+                jpy DOUBLE,
+                cad DOUBLE
+                )
+            ROW FORMAT DELIMITED
+            FIELDS TERMINATED BY ','
+            STORED AS TEXTFILE
+        """
+    )
+
+    forex_processing = SparkSubmitOperator(
+        task_id="forex_processing",
+        application="/opt/airflow/dags/scripts/forex_processing.py",
+        conn_id="spark_conn",
+        verbose=False
+    )
+
+    send_email_notification = EmailOperator(
+        task_id="send_email_notification",
+        to="paulhankins99@gmail.com",
+        subject="forex_data_pipeline",
+        html_content="<h3>forex_data_pipeline</h3>"
+    )
+
+    send_slack_notification = SlackWebhookOperator(
+        task_id="send_slack_notification",
+        http_conn_id="slack_conn",
+        message=_get_message(),
+        channel="#monitoring"
+    )
+    
+    is_forex_rates_available >> is_forex_currencies_file_available >> downloading_rates >> saving_rates 
+    saving_rates >> creating_forex_rates_table >> forex_processing
+    forex_processing >> send_email_notification >> send_slack_notification 
+</code></pre><br>
+
 							</section>
 
 					</div>
