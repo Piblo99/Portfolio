@@ -39,153 +39,146 @@
 						<!-- Post -->
 							<section class="post">
                                 <header class="major">
-                                    <h1>Pentaho Film Rentals<br />
-                                        Data Warehouse</h1>
-                                    <p>The objective of this project was to learn the technical aspects of data warehousing with a focus on dimensional modeling.
-                                        These step by step processes used to create the dimension and fact tables in this project can be generalized to many other
-                                        data integration tools but pentaho was used for demonstration.
+                                    <h1>Snowflake Data Engineering<br /></h1>
+                                    <p>The objective of this project is to explore concepts of data engineering principles
+                                        with snowlake, apache kafka, apache airflow, and AWS.
                                     </p>
                                 </header>
-                                <h2 style="text-align:center;">Source and Destination Connections</h2>
+                                <h2 style="text-align:center;">Consumption and Billing</h2>
                                 <p>
-                                    Before we start doing any Transformations, we need our source and destination!
-                                    For our source we will be using the Sakila sample database, which is well known
-                                    for instructional projects, and the schema for it can be seen below.
+                                    Snowflake can be costly. Thankfully Snowflake consumption can be tracked with some SQL Queries!
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%202%20Consumption%20%26%20Billing/consumption_tracking.sql">Click here for an example</a> 
                                 </p>
-                                <div class="image main"><img src="images/sakila_full_database_schema_diagram.png" alt="" /></div>
-                                <p>
-                                    For the Destination, I made a schema containing 5 Dimension Tables and 1 Fact Table;
-                                    dim_date, dim_time, dim_customer, dim_film, dim_store, and fact_rental.
 
-                                    With our Source filled with data, and our destination warehouse created, 
-                                    we can move on to the transformation steps and the main job to execute them.
+                                <h2 style="text-align:center;">Snowflake Objects</h2>
+                                <p>
+                                    There are several different types of tables in snowflake.
                                 </p>
-                                <h2 style="text-align:center;">Date Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_date_steps.png" alt="" /></div>
-                                <p>There is no Date Table in the source database, so the dim_date table should be created from scratch.</p>
-                                <ol>
-                                    <li>The Generate rows step is used to create a column called datein of type Date with a format of yyyy-MM-dd and a value of 2000-01-01 for each row.</li>
-                                    <li>The Add sequence step is used to create a column called valuename that consists of integers incrementing by one, starting with one.</li>
-                                    <li>The calculator step is used to create a new column called dates, with a calculation of Date A + B Days. A is set to datein, and B is set to valuename. The output type and format will be the same as datein. In this same step we can add 3 more columns; the_year, the_month, and the_day. They would have calculations of Year of date A, Month of date A, and Day of month of date A respectively. A in this case would be the dates column, and these three columns will have the type of String.</li>
-                                    <li> The Strings cut step uses the dates column as an In stream Field to create 3 new Out Stream fields called years, months, and days. These 3 new columns are cut from 0 to 4, 5 to 7, and 8 to 10 respectively.</li>
-                                    <li>The Concat fields step is used to concatenate the year, month, and day values to create a date_key column.</li>
-                                    <li>The String Operations step is used trim both sides of the fields: the_year, the_month, and the_day. In this step, the same columns are also given additional padding of length 2 with a pad character of 0.</li>
-                                    <li>The update data types step is used to Rename the following fields: dates to datein, the_year to years, the_month to months, the_day, date_key. This step is also used to change the data tapes of the following columns: dates to Date, the_year to String, the_month String, the_day to String, and date_key to integer. Lastly, this step is used to change the following column lengths: the_year to 4, the_month to 2, the_day to 2, and date_key to 10</li>
-                                    <li>The Table output step is used last and we set the target table to dim_date.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Time Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_time_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The Generate Rows steps are used twice to create an hours column with 24 rows, and a minutes column with 60 rows, with all their values being 0.</li>
-                                    <li>The Add sequence steps are used to increment the hours columns so the values go from 0 to 23, and minutes go from 0 to 59. Then these values are put into new columns called Add_hours and Add_minutes.</li>
-                                    <li>The Select values - drop columns steps are used to convert the Add_hours and Add_minutes column to type String and rename them to hours_id and minutes_id. This step also changes the Length of Add_hours and Add_minutes to 2.</li>
-                                    <li>The Cartesian Join step is used to produce the cartesian product of hours_id and minutes_id.</li>
-                                    <li>The String Operations step is used to add left padding of length 2 with the pad character of 0 to hours_id and minutes_id.</li>
-                                    <li>The Javascript Step is used to assign the concatenation of hours_id + " : " + minutes_id to a new column called time_id.</li>
-                                    <li>The Add constants step is used to create a column called temp_hour that contains rows each having a value of 1.</li>
-                                    <li>The Set value Step is used to create a column of temp_hour called hour_id</li>
-                                    <li>The Select Values Step is used to change temp_hour into an integer.</li>
-                                    <li>The Filter Rows Step is used to Filter our data based on the temp_hour column. If the value of temp_hour is less than 12 the data will be sent to the Add constants AM step, otherwise the data will be sent to the Add constants - PM step.</li>
-                                    <li>The add Constants PM fills the values of the hour_type column to PM.</li>
-                                    <li>The add Constants AM fills the values of the hour_type column to AM.</li>
-                                    <li>The dummy step does nothing and is just to see the output of the two add constant steps before.</li>
-                                    <li>The time_seq step is used to create a column called time_seq that has a value incrementing from 1. It is also used to rename the column time_id to time_desc.</li>
-                                    <li>The Table output step is used last and we set the target table to dim_time.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Customer Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_customer_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The get max date step is used to select the maximum last_update value from dim_customer</li>
-                                    <li>The Table input customer step is used to select all the columns from the customer table from the sakila database where the last_update in the customers table is greater than the last_update from the customer dimension in the warehouse.</li>
-                                    <li>The select values step is used to gather all the values with their associated formats and types from the database.</li>
-                                    <li>The Database lookup steps are used to bring in columns for city_id, country_id, address, city, and country to the warehouse when the ids are matching. </li>
-                                    <li>The Value Mapper step Creates a new Column called active_desc, giving it a value of no if active is 0, and yes if active is 1.</li>
-                                    <li>The Select Values - order step is used to pull all the columns from the database in the correct order.</li>
-                                    <li>The Data Grid step is used to add some columns with constant values to the data.</li>
-                                    <li>The dummy step does nothing and just lets us see the output of the previous step.</li>
-                                    <li>The final step is insert / update which is used to upsert any new rows from this data stream to the warehouse when they are edited.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Film Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_film_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The get max date step is used to select the maximum last_update value from dim_customer</li>
-                                    <li>The Table input customer step is used to select all the columns from the customer table from the sakila database where the last_update in the films table is greater than the last_update from the films dimension in the warehouse.</li>
-                                    <li>The select values step is used to gather all the values with their associated formats and types from the database.</li>
-                                    <li>The Database lookup steps are used to bring in columns for name and rename it to lang_name to the warehouse when language_id is matching. </li>
-                                    <li>The Number range step is used to change the values of length_desc based on the values of length. 0 to 75 indicating short, 76 to 120 indicating medium, otherwise the value of length_desc will be long.</li>
-                                    <li>The Replace null value step is used to replace nulls in the columns of type string to NA and type integer to 0.</li>
-                                    <li>The Merge Join step is used to </li>
-                                    <li>The Database lookup steps are used to bring in columns for category_id to the warehouse when film_id is matching. </li>
-                                    <li>The table categories step is used to select the category_id, name, and last_update from category</li>
-                                    <li>The sort rows steps are used to sort the data by category_id in ascending order.</li>
-                                    <li>The Merge Join step is used to perform an inner join on the two incoming sort rows steps.</li>
-                                    <li>The Split field to rows step is used to split the field called special_featurer using a comma as the delimiter. The resulting field name will be split_special_feature</li>
-                                    <li>The Add Constants step is used to add a field called special_yes which has a 1 for all row values.</li>
-                                    <li>The Row denormaliser step is used with the key field of split_special_feature to group by film_id and has the target fieldnames of has trailers, has Commentaries, has behind the scenes, and has deleted Scenes. These have key values of Trailers, Commentaries, Behind the Scenes, and Deleted Scenes respectively. Each ot these targest has the value fieldname of special_yes and data Types of String. </li>
-                                    <li>The Has columns = 0 step is used to turn all the nulles of the new fields we added in the previous step to 0.</li>
-                                    <li>The Select Values -order step is then used to pick out all the data where film_id matches betweent he database and warehouse.</li>
-                                    <li>Lastly, the Insert/update step is used to take the data from the flow and move it to the dim_film target table as an upsert.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Store Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_store_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The Table input - store step is used to bring in all the data from the store table in the database.</li>
-                                    <li>The select values step is used to set the types and formates of the data from the store table.</li>
-                                    <li>The Database lookup - staff step is used to bring data into the transformation from the staff table.</li>
-                                    <li>The Database lookup - address step is used to bring data into the transformation from the address table.</li>
-                                    <li>The Database lookup - city step is used to bring data into the transformation from the city table.</li>
-                                    <li>The Database lookup - country step is used to bring data into the transformation from the country table.</li>
-                                    <li>The select data - column order step is used to to specify the data in the order we want, to move to the output of the data stream.</li>
-                                    <li>The Table output step is used to map the data to the proper fields and move the data from the stream to the warehouse.</li>
-                                    <li>The Data Grid step is used to add constant rows with metadata from the store table, and data consisting of -1 for integers, and NA for Strings.</li>
-                                    <li>The Get System Data step is used to insert the system date as a field called last_update.</li>
-                                    <li>The Select Values - data format step is used to adjust last_update to a type of Date and sets the format of it.</li>
-                                    <li>The insert/update missing step is used with dim_store as a target table, and cheks if the store_id in the table matches the store_id in the stream and updates records accordingly.</li>
-                                    <li></li>
-                                </ol>
-                                <h2 style="text-align:center;">Staff Dimension</h2>
-                                <div class="image main"><img src="images/pentaho_films_dim_staff_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The table input - Staff step is used to bring in all the columns from the staff table in the Sakila database.</li>
-                                    <li>The Select Values step is used to give the values the correct types, lengths, and formats as well as some other features.</li>
-                                    <li>The value mapper is used to map the values of 1 and 0 to active and not active respectively from the active column to the active_desc column.</li>
-                                    <li>The first table output step moves this data from the stream to dim_staff table in the warehouse.</li>
-                                    <li>The Data Grid step is used to create default values for all the columns in the staff table.</li>
-                                    <li>The table output 2 step moves these default values to the data warehouse.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Rentals Fact</h2>
-                                <div class="image main"><img src="images/pentaho_films_fact_rentals_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The Get Max date target step is used to get the latest date from fact_rental.</li>
-                                    <li>The Table input Rental grabs all the data from the rentals table in the sakila database.</li>
-                                    <li>The Database lookup - film id and store id uses the inventory table to lookup the film_id and store_id  when the table field inventory_id matches the stream field inventory_id.</li>
-                                    <li>The Database lookup - check film step uses dim_film as a lookup table to check for matching film_ids and put a -1 if not.</li>
-                                    <li>The Database lookup - check store step uses dim_store as a lookup table to check for matching store_ids and put a -1 if not.</li>
-                                    <li>The Database lookup - check staff step uses dim_staff as a lookup table to check for matching staff_ids and put a -1 if not.</li>
-                                    <li>The Database lookup - check customer step uses dim_customer as a lookup table to check for matching customer_ids and put a -1 if not.</li>
-                                    <li>The calc rental hours step is used to calculate the rental hours using a datediff function on rental date and return date. The results will be the value of a rental_hours column and this also produces an is_return column value by checking if the return_date is not equal to null.</li>
-                                    <li>The temp Dates step is used to create a date_key column in the form of yyyy-mm-dd as a copy of the dates field in a new field called rental_date. This new field will be of type String.</li>
-                                    <li>The Strings cut step uses the dates column as an In stream Field to create 3 new Out Stream fields called years, months, and days. These 3 new columns are cut from 0 to 4, 5 to 7, and 8 to 10 respectively.</li>
-                                    <li>The Concat Fields step is used to concatenate the year month and date fields to make a date key column. </li>
-                                    <li>The hours and minutes step is used to creates fields called hours and mionutes using calculations fromt he rental_date field.</li>
-                                    <li>The Database lookup - time step uses dim_time as a lookup table to check for matching hours_ids and minutes_ids with teh hours and minutes fields respectively, and put a -1 if not.</li>
-                                    <li>The Select Values - change names step is used to remove the following fields from the data stream: staff_id, film_id, store_id, hours, minutes, and dates.</li>
-                                    <li>The Insert / Update step creates a connection with the warehouse and sets the target table to fact_rental, and upserts all the data from the stream to the target table.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Payments Fact</h2>
-                                <div class="image main"><img src="images/pentaho_films_fact_payments_steps.png" alt="" /></div>
-                                <ol>
-                                    <li>The Get Max date target step is used to get the latest date from fact_rental.</li>
-                                    <li>The Table input payments grabs all the data from the payment table in the sakila database.</li>
-                                    <li>The Database lookup - staff payment step uses dim_staff as a lookup table to check for matching staff_ids and put a -1 if not.</li>
-                                    <li>The Select Values - change step is used gather all the data needed from the stream and rename the last_update column to payment_last_update.</li>
-                                    <li>The Update step is used to target the fact_rental columns on matchin rental_ids and provide updates wherever changes have occured.</li>
-                                </ol>
-                                <h2 style="text-align:center;">Main Job</h2>
-                                <div class="image main"><img src="images/pentaho_films_main_job_steps.png" alt="" /></div>
-                                <p>This is the Job that contains all the transoformations that were created previously, and error handeling steps before them.
-                                    The job checks for correct database connections, existence of files, and the file size of the stream to make sure data is actually coming in.
-                                    We can schedule this job using windows task manager on a server to run every so often to keep a data warehouse up to date from our OLTP database.
+                                <ul>
+                                    <li>Permanent Tables are the default type of tables.</li>
+                                    <li>Temporary Tables are used for results of ad hoc queries that wouldn't be expected to be needed for a long time. This type of table is deleted when a session ends.</li>
+                                    <li>Transient Tables are similar to Permanent tables. This type of table exists until they are explicitly dropped. Used to persist transitory data that is needed beyond a session.</li>
+                                </ul>
+                                <p>
+                                    Temporary and transient tables do not have fale-safe and time-travel features enabled.
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%203%20Different%20Type%20of%20Tables/table_types.sql"> Click here to see an exploration of table types</a>
+                                </p>
+
+                                <br>
+
+                                <p>
+                                    As for views in snowflake there are Materialized views and non-materialized views.
+                                    <br>
+                                    The characteristics of materialized views are as follows:
+                                </p>
+                                <ul>
+                                    <li>A materialized view is a per-computed data set derived from a query specification (The select in the view definition) and stored for later use.</li>
+                                    <li>Because the data is pre-computed, querying a materialized view is faster than executing a query against the base table of the view</li>
+                                    <li>Materialized views can speed up expensive aggregation, projection, and selection operations, especially those that run frequently and those that run on large datasets.</li>
+                                </ul>
+                                <p>
+                                    Views and snowflake can also be defined as secure or insecure.
+                                    <br>
+                                    The characteristics view security are as follows:
+                                </p>
+                                <ul>
+                                    <li>Views should be defined as secure when they are specifically designated for data privacy.</li>
+                                    <li>With secure views, the view definition and details are only visible to authorized users</li>
+                                    <li>Both materialized and non-materialized views can be defined as secure</li>
+                                    <li>A Secure View has improved data privacy and data sharing.</li>
+                                    <li>Both views and materialized views can be clustered for better performance.</li>
+                                </ul>
+                                <p>
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%203%20Different%20Type%20of%20Tables/views-materialized_views.sql">Click here for an example of the creation and securing of views.</a>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%203%20Different%20Type%20of%20Tables/create-role-to-test-security.sql">Click here for an example of using roles to grant permissions to use secure views.</a>
+                                </p>
+                                <h2 style="text-align:center;">Partitioning, Clustering, and Performance Optimization</h2>
+                                <p>
+                                    In snowflake the data inside the table automatically gets divided into smaller chunks of data 
+                                    in the range of 50MB to 500MB each called micro-partitions. These micro partitions do not need to be defined 
+                                    explicitly & can overlap in the range of values.
+                                    The metadata for each of these partitions is stored in the cloud services layer.
+                                    <br>
+                                    The metadata contains:
+                                    <ul>
+                                        <li>
+                                            Range of values for each of the columns in micro-partitions
+                                        </li>
+                                        <li>
+                                            Number of unique values
+                                        </li>
+                                        <li>
+                                            Additional properties required for efficient query processing and data scanning
+                                        </li>       
+                                    </ul>
+
+                                    Clustering is characterized by:
+                                    <ul>
+                                        <li>
+                                            Clustering is a process to optimize data retrieval.
+                                        </li>
+                                        <li>
+                                            Clustering is performed on micro-partitions to ensure similar data reside in the same micro-partition which can be fetched in a single query.
+                                        </li>
+                                        <li>
+                                            The Clustering Key is a column or a group of columns that are designated to locate the data in the same micro-partition.
+                                        </li>
+                                        <li>
+                                            Clustering keys play a key role in ensuring the data is sorted/ordered inside the micro-partitions which especially helps while querying large tables.
+                                        </li>
+                                        <li>
+                                            Pruning is a process where snowflake avoids scanning the unnecessary micro-partitions using the clustering keys in the "where clause" thus resulting in better performance.
+                                        </li>
+                                        <li>
+                                            Snowflake automaticalls splits the table into clustered micro-partitions using the natural dimensions such as date columns.
+                                        </li>
+                                        <li>
+                                            These clustered micro-partitions might not be necessarily ideal in the long run. (This is due to the high cardinality associated with these columns.)
+                                        </li>
+                                    </ul>
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%204%20Micropartitions%20%26%20Clustering/selecting_clustering_keys.sql">Click here to see an example of selecting clustering keys</a>
+
+                                    
+                                </p>
+                                <h2 style="text-align:center;">Data Loading/Ingestion and Extraction</h2>
+                                <p>
+
+                                </p>
+
+                                <h2 style="text-align:center;">Tasks and Query Scheduling</h2>
+                                <p>
+
+                                </p>
+                                <h2 style="text-align:center;">Streams and Change Data Capture</h2>
+                                <p>
+
+                                </p>
+
+                                <h2 style="text-align:center;">User Defined Functions</h2>
+                                <p>
+
+                                </p>
+                                <h2 style="text-align:center;">External Functions</h2>
+                                <p>
+
+                                </p>
+
+                                <h2 style="text-align:center;">Snowflake with Python Spark and Airflow on AWS</h2>
+                                <p>
+
+                                </p>
+                                <h2 style="text-align:center;">Realtime Streaming with Kafka and Snowflake</h2>
+                                <p>
+
+                                </p>
+
+                                <h2 style="text-align:center;">Data Protection and Governance</h2>
+                                <p>
+
                                 </p>
 							</section>
 
