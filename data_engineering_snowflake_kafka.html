@@ -139,10 +139,64 @@
                                             These clustered micro-partitions might not be necessarily ideal in the long run. (This is due to the high cardinality associated with these columns.)
                                         </li>
                                     </ul>
+                                    <br>
+                                    <p>
+                                        Considerations for clustering a table in snowflake:
+                                    </p>
+                                    <ul>
+                                        <li>
+                                            Table is huge in size. Ideally multiple TBs of data.
+                                        </li>
+                                        <li>
+                                            Majority of the queries are selective (use a where condition on a column or group of columns)
+                                        </li>
+                                        <li>
+                                            Majority of the queries sort the data (use a order by clause)
+                                        </li>
+                                        <li>
+                                            The ratio of queries (reading) and the DML operations should be high.
+                                        </li>
+                                        <li>
+                                            If you want to cluster a large table with a lot of frequent DML operations, consider grouping the DML operations together and running them less frequently.
+                                        </li>
+                                        <li>
+                                            A high number of queries in your entire workload can possibly use the same clustering key.
+                                        </li>
+                                        <li>
+                                            For Example: 95% of the queries in your data ecosystem filter the data and order by using the same set of columns.
+                                        </li>
+                                    </ul>
+
+                                    <br>
+                                    <p> Selecting the clustering keys</p>
+
+                                    <ul>
+                                        <li>
+                                            A clustering key can be one column or multiple columns. Ideally the max number of columns should be limited to 3.
+                                        </li>
+                                        <li>
+                                            Columns with low and high cardinality are not good candidates for clustering keys and must be avoided.
+                                        </li>
+                                        <li>
+                                            Eg: If you select a timestamp value (high cardinality) or a gender column with extremely low cardinality, this will result in poor performance of your queries and high clustering costs will be incurred.
+                                        </li>
+                                        <li>
+                                            If the clustering key is multiple columns, the order in which the columns are specified in the create table or alter table statement is important. As a rule of thumb, columns must be specified from low to high cardinality.
+                                        </li>
+                                    </ul>
                                     <br><br>
                                     <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%204%20Micropartitions%20%26%20Clustering/selecting_clustering_keys.sql">Click here to see an example of selecting clustering keys</a>
+                                    <br>
+                                    Snowflake allows you to check the query history and even filter by the types of queries executed. This helps with monitoring for performance checking and security purposes.
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%204%20Micropartitions%20%26%20Clustering/query_history.sql">Click here to see an example of query history checking</a>
+                                    <br>
+                                    Snowflake allows you to leverage a feature called search optimiation when using point lookup queries.
+                                    Point lookup queries are queries in which the where clause is used to select rows for a particular column.
+                                    Eg: Select * from table where column = "abc"
 
-                                    
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%204%20Micropartitions%20%26%20Clustering/search_optimization.sql">Click here to see an example Snowflake's search optimization</a>
                                 </p>
                                 <h2 style="text-align:center;">Data Loading/Ingestion and Extraction</h2>
                                 <p>
