@@ -184,13 +184,13 @@
                                             If the clustering key is multiple columns, the order in which the columns are specified in the create table or alter table statement is important. As a rule of thumb, columns must be specified from low to high cardinality.
                                         </li>
                                     </ul>
-                                    <br><br>
+                                    
                                     <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%204%20Micropartitions%20%26%20Clustering/selecting_clustering_keys.sql">Click here to see an example of selecting clustering keys</a>
-                                    <br>
+                                    <br><br>
                                     Snowflake allows you to check the query history and even filter by the types of queries executed. This helps with monitoring for performance checking and security purposes.
                                     <br><br>
                                     <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%204%20Micropartitions%20%26%20Clustering/query_history.sql">Click here to see an example of query history checking</a>
-                                    <br>
+                                    <br><br>
                                     Snowflake allows you to leverage a feature called search optimiation when using point lookup queries.
                                     Point lookup queries are queries in which the where clause is used to select rows for a particular column.
                                     Eg: Select * from table where column = "abc"
@@ -200,7 +200,66 @@
                                 </p>
                                 <h2 style="text-align:center;">Data Loading/Ingestion and Extraction</h2>
                                 <p>
+                                    Snowflake has multiple options for loading data!
+                                    Batch Bulk Data Ingestion:
+                                    <ul>
+                                        <li>
+                                            Write/load the data into your staging locations (S3, GCS Buckets)
+                                        </li>
+                                        <li>
+                                            <ul>
+                                                Ingest the data into Snowflake in batches at frequent time intervals using:
+                                                <li>
+                                                    Snowflake Copy Commands scheduled using Snowflake tasks
+                                                </li>
+                                                <li>
+                                                    Trigger Copy commands using python/Glue/Airflow running at specified time intervals
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    Real-time Data Ingestion:
+                                    <ul>
+                                        <li>
+                                            Write/load the data into your staging location (S3, GCS Buckets) and ingest the data in near-real time using:
+                                            <ul>
+                                                <li>
+                                                    Snowpipe(Continuous data ingestion)
+                                                </li>
+                                                <li>
+                                                    Airflow S3 sensors/triggers
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            Kafka-snowflake Connector real-time data ingestion
+                                        </li>
+                                    </ul>
 
+                                    I created an AWS connection to Snowflake for learning purposes. the steps are as follows:
+
+                                    <ol>
+                                        <li>
+                                            Create an IAM Role for snowflake to access data in S3 Buckets
+                                        </li>
+                                        <li>
+                                            Create an S3 Bucket in AWS and upload Files into bucket
+                                        </li>
+                                        <li>
+                                            Create an Integration Object in Snowflake for authentication
+                                        </li>
+                                        <li>
+                                            Create a File Format Object
+                                        </li>
+                                        <li>
+                                            Create a stage object referencing the location from which the data needs to be ingested
+                                        </li>
+                                        <li>
+                                            Load the data into Snowflake Tables
+                                        </li>
+                                    </ol>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%205%20Data%20Loading%20into%20Snowflake/aws-snowflake-setup.sql">Click here to see the setup of an AWS connection to snowflake</a>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%205%20Data%20Loading%20into%20Snowflake/auto-ingestion-snowpipe.sql">Click here to see an example of using Snowpipe for auto ingestion from AWS S3</a>
                                 </p>
 
                                 <h2 style="text-align:center;">Tasks and Query Scheduling</h2>
