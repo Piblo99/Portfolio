@@ -41,7 +41,9 @@
                                 <header class="major">
                                     <h1>Snowflake Data Engineering<br /></h1>
                                     <p>The objective of this project is to explore concepts of data engineering principles
-                                        with snowlake, apache kafka, apache airflow, and AWS.
+                                        with snowlake, apache kafka, apache airflow, and AWS. For every section in this page,
+                                        I have worked hands on with the features described to get a better understanding of them
+                                        and have provided many examples with links to my github files.
                                     </p>
                                 </header>
                                 <h2 style="text-align:center;">Consumption and Billing</h2>
@@ -264,34 +266,198 @@
 
                                 <h2 style="text-align:center;">Tasks and Query Scheduling</h2>
                                 <p>
+                                    Snowflake Tasks are similar to a scheduler that can execute SQL queries at a defined frequency or time.
+                                    <br><br>
+                                    A task can be used to execute:
+                                    <ul>
+                                        <li>
+                                            A single Query
+                                        </li>
+                                        <li>
+                                            Multiple SQL Queries (Tree of tasks)
+                                        </li>
+                                    </ul>
+                                    Compute resources for a task can be:
+                                    <br><br>
+                                    <ul>
+                                        <li>
+                                            Serverless (Snowflake managed)
+                                        </li>
+                                        <li>
+                                            User Managed (one of the existing virtual warehouses)
+                                        </li>
+                                    </ul>
 
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%206%20Tasks%20%26%20Query%20Scheduling/create_tasks.sql">Click here to see an example of Task Creation in Snowflake</a>
                                 </p>
                                 <h2 style="text-align:center;">Streams and Change Data Capture</h2>
                                 <p>
+                                    CDC is the process of capturing GML operations
+                                    (updates, inserts, and deletes) in your tables so that necessary actions can be taken
+                                    using the changed data. In Snowflake, the process of CDC is achieved using streams.
+                                    A stream (can be thought of as a table), makes the "changed data" available indicating what 
+                                    has changed in the source table between two transactional points.
 
+                                    Snowflake stream types:
+                                    <ul>
+                                        <li>
+                                            Standard: Tracks all DML changes to the source table, including inserts, updates, and deletes.
+                                        </li>
+                                        <li>
+                                            Append-only: Tracks row inserts only. Update and delete operations are not recorded.
+                                        </li>
+                                        <li>
+                                            Insert-only: Same as append-only, but for external tables.
+                                        </li>
+                                    </ul>
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%207%20Streams%20%26%20CDC/standard-delta-streams.sql">Click here to see an example of implementing standard streams</a>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%207%20Streams%20%26%20CDC/append-only-streams.sql">Click here to see an example of implementing append-only streams</a>
+
+                                    A transaction is a sequence of SQL statements that are processed as an atomic unit. All statements in the transaction are either applied (i.e. committed) or undone (i.e. rolled back) together.
+                                    Snowflake transactions support commit and rollback.
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%207%20Streams%20%26%20CDC/streams-in-transactions.sql">Click here to see an example of implementing streams in transactions</a>
+                                    <br>
+                                    An Alternative to streams is a feature called Change Tracking.
+                                    Change tracking is read-only.
+                                    Change tracking enables querying change tracking metadata between two points in time without having to create a stream with an explicit transactional offset.
+                                    Using the changes clause does not advance the offset.
+
+                                    If you have a table that is not updated frequently and you don't want to consume the changed data at a defined frequency, that would be a more appropriate time to use change tracking.
+                                    Streams would be good for scenarios in which you have a table apart of your pipeline that changes frequently and you want to consume the changes to use them for reporting and analytics.
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%207%20Streams%20%26%20CDC/change-tracking-cdc.sql">Click here to see an example of implementing change tracking</a>
                                 </p>
 
                                 <h2 style="text-align:center;">User Defined Functions</h2>
                                 <p>
+                                    User defined functions let you extend operations that are not
+                                    available through system defined functions in Snowflake.
+                                    <br>
+                                    <br>
+                                    UDF's are reusable code which can be written in:
+                                    <ul>
+                                        <li>
+                                            SQL
+                                        </li>
+                                        <li>
+                                            javascript
+                                        </li>
+                                        <li>
+                                            Java
+                                        </li>
+                                        <li>
+                                            Python (External Functions)
+                                        </li>
+                                    </ul>
 
+                                    SQL UDF's can execute re-usable sql queries whereas Javascript UDF's give you more 
+                                    flexibility when it comes to branching or looping
+
+                                    <br>
+                                    <br>
+                                    UDFs are of 2 types:
+                                    <ul>
+                                        <li>
+                                            Scalar - A scalar function returns one output row.
+                                        </li>
+                                        <li>
+                                            Tabular - Also called a table function, returns zero, one, or multiple rows for each input row.
+                                        </li>
+                                    </ul>
+
+                                    <br><br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%208%20UDF/sql_udf.sql">Click here for an example of implementing scalar and tabular UDFs in SQL</a>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%208%20UDF/javascript_udf.sql">Click here for an example of implementing UDFs in JavaScript</a>
+
+                                    <br><br>
+                                    Snowflake - Query Filter Execution
+                                    <ul>
+                                        <li>
+                                            Load First, filter later:
+                                            <ul>
+                                                <li>
+                                                    Road all rows from the table into memory
+                                                </li>
+                                                <li>
+                                                    Scan the rows in memory, filtering out any rows that do not match the filter 
+                                                </li>
+                                                <li>
+                                                    Select the columns that remain in the memory (select cause)
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        
+                                        <li>
+                                            Early Filtering (Pushdown)
+                                            <ul>
+                                                <li>
+                                                    Do not load/read the records that do not match the filter conditions from the WHERE clause
+                                                </li>
+                                                <li>
+                                                    Scan the remaining rows in memory and select the columns from the select clauses
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <br><br>
+                                    Pushdown Benefits
+                                    <br>
+                                    Pushdown improves performance by filtering out unneeded rows as early as possible during query processing.
+                                    <br>
+                                    Pushdown can also reduce memory consumption. However pushdown can allow confidential data to be exposed indirectly.
+                                    <br><br>
+                                    SQL UDFS should be defined as secure when they are specifically designated for data privacy.
+                                    Secure UDFs should not be used for UDFs that are created for query re-usability or querying convenience.
+                                    Snowflakes query optimizer bypasses the optimizations(pushdowns) when it comes to Secure UDFS.
+                                    Secure UDFs have a relatively poor query performance compared to REgular UDFs.
                                 </p>
                                 <h2 style="text-align:center;">External Functions</h2>
                                 <p>
+                                    An external function calls code that is executed outside of Snowlfake.
+                                    The remotely executed code is known as a remote service.
+                                    Information sent to a remote service is usually relayed through a proxy service.
+                                    An external function is a type of UDF. Unlike other UDFs, an external function does not contain its own code;
+                                    instead, the external function calls code that is stored and executed outside Snowflake.
+
+                                    Examples: 
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%209%20External%20Functions/ext-function-integration.sql">Snowflake integration with external functions</a>
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%209%20External%20Functions/lambda_function.py">external lambda function in python</a>
+                                    <br>
 
                                 </p>
 
-                                <h2 style="text-align:center;">Snowflake with Python Spark and Airflow on AWS</h2>
-                                <p>
-
-                                </p>
                                 <h2 style="text-align:center;">Realtime Streaming with Kafka and Snowflake</h2>
                                 <p>
-
+                                    Kafka connectors can be used to read data from multiple Apache Kafka topics and load the data into a snowflake table.
+                                    <br><br>
+                                    https://docs.snowflake.com/en/user-guide/kafka-connector-ts.html
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/tree/master/Section%2011%20kafka%20streaming%20snowflake">kafka pipeline producer and configuration files</a>
                                 </p>
 
                                 <h2 style="text-align:center;">Data Protection and Governance</h2>
                                 <p>
+                                    TimeTravel and Failsafe are features in Snowflake to help with data retention.
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%2012%20Data%20Governance%20%26%20Security/time-travel.sql">Here is an example of the time travel feature in Snowflake.</a>
 
+                                    <br><br>
+                                    Snowflake allows for Column level data masking policies. This can for example 
+                                    be used to keep a reporting intern for seeing certain values that other roles in a company would be allowed to see.
+                                    You can see an example of the Masking feature within snowflake here!
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%2012%20Data%20Governance%20%26%20Security/masking_policies.sql">Masking policy example</a>
+                                    <br><br>
+
+                                    Snowflake also has features for row level access policies.
+                                    This can be very helpful in situations where you would otherwise have to create 
+                                    a large amount of secure views.
+                                    <br>
+                                    <a href="https://github.com/Piblo99/Snowflake---Build---Architect-Data-pipelines-using-AWS/blob/master/Section%2012%20Data%20Governance%20%26%20Security/row-level-policy.sql">Example of Row level policy in Snowflake</a> 
                                 </p>
 							</section>
 
