@@ -4592,6 +4592,13 @@ input, select, textarea {
 			padding-left: 0;
 		}
 
+		#navPanel .weed {
+			pointer-events: none;
+			display: none;
+			position: absolute; 
+			left: -999em;
+		}
+
 			#navPanel .links li {
 				border-top: solid 2px #eeeeee;
 			}
@@ -4683,6 +4690,7 @@ input, select, textarea {
 
 	@media screen and (max-width: 980px) {
 
+		
 		body.is-navPanel-visible #wrapper {
 			opacity: 0.5;
 		}
@@ -4696,4 +4704,13 @@ input, select, textarea {
 			visibility: visible;
 		}
 
+
 	}
+
+		#nav .sneed {
+			pointer-events: none;
+			display: none;
+			position: absolute; 
+			left: -999em;
+		}
+
