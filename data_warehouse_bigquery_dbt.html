@@ -158,9 +158,6 @@
                                         Create Bus Matrix High level entities
                                     </li>
                                     <li>
-                                        Create Naming Convention Document
-                                    </li>
-                                    <li>
                                         Create Conceptual Model
                                     </li>
                                 </ul>
@@ -219,6 +216,50 @@
                                 </p>
 
                                 <h3 style="text-align:center;">Data Profiling</h3>
+                                <p>
+                                    There are many specialized tools that can be used to perform data profiling.
+                                    For this project, Manual data profiling is the option of choice.
+                                    To begin the process of manual data profiling, I decided to upload the schemas
+                                    of tables from the company's transaction data into BigQuery and profiled the data 
+                                    in there since BigQuery will be used as our data warehouse. This can either be achieved
+                                    by exporting csv files from the transactional database and uploading them to bigquery,
+                                    or creating the tables and inserting values with SQL. I chose the CSV option because it is quicker.
+                                    <br><br>
+
+                                    The first data profiling step done was to check the datatypes. I noticed that the id
+                                    column has a mode set to NULLABLE. This is probably not what we want because at this stage,
+                                    it can be assumed that id is most likely a primary key. Primary keys need to be 
+                                    Unique and non-nullable.
+
+                                    <div class="image main"><img src="images/BigQuery_Profiling_1.png"/></div>
+
+
+                                    The next thing I checked was the values within all the columns to check for any issues.
+                                    The first thing I noticed was the businees_phone and fax_number columns has the same values for every record. This 
+                                    could be an issue indicating a placeholder value was used or something went wrong with the data.
+                                    We could go to our OLTP system experts and have a discussion with them as to why these numbers seem incorrect.
+                                    Laregely all the Email address values are empty too. 
+                                    
+                                    <div class="image main"><img src="images/BigQuery_Profiling_2.png"/></div>
+
+                                    The next thing I wanted to check was if the id column of the table was really unique. 
+                                    I opened up a query editor in BigQuery and wrote a SQL statement that would generate 
+                                    information about how unique specific values are within a column. for the id value of 1,
+                                    it is clear that there exists duplicate values which is atypical of id columns.
+
+                                    <div class="image main"><img src="images/BigQuery_Profiling_3.png"/></div>
+
+                                    This profiling was just for the Customer table, but this process needs to be done for 
+                                    other tables that that provide important business information.
+                                </p>
+                                
+                                <h3 style="text-align:center;">Bus Matrix - High Levle Entities</h3>
+
+                                <h3 style="text-align:center;">Conceptual Model</h3>
+
+
+                                <h2 style="text-align:center;">Dimension Modeling</h2>
+                                
 							</section>
 
 					</div>
