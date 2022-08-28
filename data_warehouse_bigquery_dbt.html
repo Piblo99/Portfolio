@@ -253,12 +253,103 @@
                                     other tables that that provide important business information.
                                 </p>
                                 
-                                <h3 style="text-align:center;">Bus Matrix - High Levle Entities</h3>
+                                <h3 style="text-align:center;">Bus Matrix - High Level Entities</h3>
 
+                                For this part of the project I looked through the tables for transactional data,
+                                and determined at a high level what entities would be needed in a warehouse and the dimensions  that should be applied to it. 
+                                
+                                <div class="image main"><img src="images/BigQuery_Bus_Matrix.png"/></div>
+                                
                                 <h3 style="text-align:center;">Conceptual Model</h3>
 
+                                The 3 major entities were determined to be sales, inventory, and purchase order.
+                                A conceptual model was created in draw.io to illustrate.
 
-                                <h2 style="text-align:center;">Dimension Modeling</h2>
+                                <div class="image main"><img src="images/conceptual_diagram.png"/></div>
+
+                                <h2 style="text-align:center;">Architecture Diagram</h2>
+
+                                <div class="image main"><img src="images/BQ_architecture.png"/></div>
+
+                                <h2 style="text-align:center;">Dimensional Modeling</h2>
+
+                                <p>
+                                    The process of Dimensional Modeling can be described in these 4 steps:
+                                    <ol>
+                                        <li>
+                                            Select the business process
+                                        </li>
+                                        <li>
+                                            Declare the grain
+                                        </li>
+                                        <li>
+                                            Identify the dimensions
+                                        </li>
+                                        <li>
+                                            Identify the facts
+                                        </li>
+                                    </ol>
+
+                                    After these steps are completed, The logical model can be created next from the conceptual model.
+                                    Then Source to Target mapping documents can be created to show how the tablse in the data warehouse came from 
+                                    the tables in the transactional database.
+                                </p>
+                                <h3 style="text-align:center;">Detailed Bus Matrix</h3>
+                                <p>
+                                    I created a more detailed bus matrix the identifies business processes, associated fact tables, and granularity. 
+                                    Starting with finding the highest priority process, sales in this case, and then declaring
+                                    a low level grain. Then I found lower priority business processes and followed the same steps for those.
+                                </p>
+
+                                <div class="image main"><img src="images/BQ_detailed_matrix.png"/></div>
+
+                                <h3 style="text-align:center;">Source to Target Mapping</h3>
+                                <p>
+                                    I created a workbook that is used to show the mapping of schemas from the 
+                                    transactional database to other layers of the data warehouse project.
+                                    This was done for the following Sources and targets:
+                                    <ul>
+                                        <li>
+                                            Source to BQ Data Lake
+                                        </li>
+                                        <li>
+                                            BQ Data LAke to Staging
+                                        </li>
+                                        <li>
+                                            Data Lake to Data Warehouse
+                                        </li>
+                                        <li>
+                                            Data Warehouse to OBT
+                                        </li>
+                                    </ul>
+                                </p>
+                                <div class="image main"><img src="images/BQ_target_mapping.png"/></div>
+
+                                <h3 style="text-align:center;">Logical Model</h3>
+                                <p>
+                                    With all of the target mapping documents created and business processes
+                                    defined, we can move on to creating the logical model of the data warehouse tables.
+                                </p>
+                                <div class="image main"><img src="images/logical_diagram.png"/></div>
+
+                                <h2 style="text-align:center;">Physical Model Design and Implementiation</h2>
+                                <p>
+                                    With the logical model created, we can then indicate keys and 
+                                    add the datatypes of fields, then properly link shared dimensions
+                                    to their associated fact tables, and this leads to the creation
+                                    of our Physical models.
+                                </p>
+                                <h3 style="text-align:center;">Physical Model</h3>
+
+                                <div class="image main"><img src="images/phyisical_diagram.png"/></div>
+
+                                <h3 style="text-align:center;">Implementiation with dbt</h3>
+
+                                <p>
+                                    <i>
+                                        **To be continued**
+                                    </i>
+                                </p>
                                 
 							</section>
 
