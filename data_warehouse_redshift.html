@@ -45,209 +45,26 @@
                                         AWS is a great cloud platform to use as an example.
                                     </p>
                                 </header>
-                                <h2 style="text-align:center;">Architecture</h2>
+                                <h2 style="text-align:center;">Project Overview</h2>
                                 <div class="image main"><img src="images/AWS_Secure_Data_Lake_Architecture.png" alt="" /></div>
+
                                 <p>
-                                    Setting up a data Lake can be complicated, but AWS Lake Formation makes the process a lot more simple.
-                                    Glue Blueprints are used to ingest data from the relational database source, which is a MySQL database running on an RDS instance.
-                                    Glue Crawlers are used to ingest data from Kineses into the data lake.
-                                    Glue Studio is used to transfer the data through different stages within the data lake, and to ingest nonrelational data from dynamo DB.
-                                    Glue DataBbrew can be used to do a quick analysis on our data before the data pipelines are built.
-                                    Later on the data will be moved from the data lake to the redshift, which is the columnar data warehouse solution on AWS.
-                                    Amazon Macie is later used to address compliance and data privacy for PII data or other sensitive data.
-                                </p>
-                                <h2 style="text-align:center;">Setting up the data lake with AWS Lake Formation</h2>
-                                <p>
-                                    First I create a user with administrator priviledges with IAM, then go into 
-                                    lake formation and assign that user as a lake formation admin.
-                                    Then we grant this role permission to create databases in the lake formation
-                                    service. Then 3 buckets are created with the following names: 
-                                    lakeformation-raw, demo-lakeformation-processed, and demo-lakeformation-curated.
-                                    Versioning and encryption were enabled for all of these buckets.
-                                    For the lakeformation-raw bucket 2 folders were created: output and athena.
-                                    Next we go back into our lake formation environment and create 3 databases
-                                    called: demo-raw, demo-processed and demo-curated.
-                                    These databases are all linked to the respective S3 buckets created earlier.
+                                    <ul>
+                                        <li>
+                                            Ecommerce company with a MySQL DB in AWS RDS
+                                        </li>
+                                        <li>
+                                            Sync the data from MySQL transactional system into Redshift Data Warehouse
+                                        </li>
+                                        <li>
+                                            Capture the external data from other sources i.e. user behavior data, click streams, etc. Transform and centralize the data into a single infrastructure
+                                        </li>
+                                        <li>
+                                            Generate reports/KPIs and metrics for decision making, machin learning, and analysis.
+                                        </li>
+                                    </ul>
                                 </p>
 
-                                <h4 style="text-align:center;">Simple file ingestion into data lake</h4>
-                                <p>
-                                    In the demo-lakeformation-raw S3 bucket I created a new folder in the input folder called customer.
-                                    Then I uploaded a customer.csv file into it that contains customer data.
-                                    Then, in Lake Formation I set up a crawler called raw-customer-ingest with a data store of S3
-                                    and a path to the customer folder.
-                                    I set the exclude pattern to *.log to ignore all log files and create a role called 
-                                    rawCustomerIngest, for the schedule I set the crawler to run on demand.
-                                    The database for the crawler's output is demo-raw and the prefix for the tables is set to sales.
-                                    I set the schema change detection option to add new columns only and then finish creating the crawler.
-                                    In lake formation I grant permissions to the IAM role created in the crawler setup to
-                                    Select, Insert, Delete, Describe, Alter, and Drop all tables within the demo-raw database.
-                                    I went back into the Glue console and ran the crawler.
-                                    The salescustomer table is created and the schema is automatically generated with the proper datatypes.
-                                    Next we go into AWS Athena to see if we can Query the data.
-                                    We Create an S3 bucket to store the Athena Queries and Put in a query to 
-                                    select 10 rows of data from the salescustomer table in the demo-raw database and successfuly Query the data.
-                                </p>
-                                <br>
-                                <h4 style="text-align:center;">Using blueprints and workflows in Lake Formation for ingesting data from MySQL RDS</h4>
-                                <p>
-                                    Next I worked on the RDS data. I start by creating an RDS instance 
-                                    called lakeformation-source-one using MySQL Community as the engine. 
-                                    Next I filled in the connection information to the RDS instance using Visual Studio Code's database connection feature for MySQL.
-                                    For the security group for the RDS database in Lake Formation I created an Inbound rule allowing all traffic
-                                    so I can connect. Then I connected successfully queried the database with some world data I imported.
-                                    I then went back to Lake Formation and created a blueprint. I set the blueprint type to incremental database,
-                                    then set up a glue connection with a source type of MySQL and all the credentials needed to access the data store.
-                                    Next I tested the connection and succeeded after creating a VPC Gateway endpoint for S3 and gave it full access.
-                                    Now with the Database connection created, I set the Source data path to world_x/city
-                                    and set the incremental data settings to have a Table name of city and Bookmark Keys of ID.
-                                    Next I set the Target database to demo-raw and Target storage location to s3://demo-lakeformation-raw,
-                                    and set the Data format to Parquet. The Import frequency was set to Run on demand.
-                                    For the import options, I set the Workflow name to lakeformation-source1-wf, used the gluestudio IAM role, and set the 
-                                    Table prefix to nothing, then created the blueprint. I clicked Actions and then start workflow. 
-                                    After a while the run status changed to COMPLETED, and This created a Table in the Data Catalog
-                                    called world_x_city. Once again, I created a query to test the being able to pull 10 records from this
-                                    table in the demo-raw database and it succeeded.
-                                </p>
-                                <br>
-                                <h4 style="text-align:center;">Ingest real-time data into the data lake using AWS Kinesis Firehose</h4>
-                                <p>
-                                    I created another new folder in the demo-lakeformation-raw S3 bucket's input folder called kinesis-realtime.
-                                    I copied the file path and created a Kinesis Firehose deliver stream using the path we just used.
-                                    I then used the IAM role created by kinesis and granted it super admin permissions in Lake Formation.
-                                    I tested with demo data just to make sure it works properly and it completed successfully.
-                                    Now I went back into Lake Formation and created another crawler called kinesis-ingest. I 
-                                    set the proper S3 path and created a new IAM role for this crawler called AWSGlueServiceRole-kinesisingestRealtime.
-                                    the Database was set to demo-raw and the prefix was set to kinesis_.
-                                    I granted super user permissions to this new glue crawler IAM role and ran the crawler successfully.
-                                    Some of the sample metadata had incorrect column names in the schema so i changed them manually. Then I tested 
-                                    a query against this data with Athena for 10 records.
-                                </p>
-                                <br>
-                                <h4 style="text-align:center;">Security and governance of the data lake with governed tables</h4>
-                                <p>
-                                    For learning purposes, I created another user called analyst in Lake Formation and gave it only 
-                                    access to select the data, and only specific columns from the data: customer_id, prefix, first_name, and last_name.
-                                    I logged into this user to verify the data they were able to access.
-                                    Then I created an LF-Tag with a Key of PII and Values of true,false.
-                                    I added another LF-Tag with a Key of Category and Values Reporting,Data Science.
-                                    Then I edited the LF-Tags for the world_x_city table with the Assigned keys of PII and values of false.
-                                    Then I edited the LF-Tags for the world_x_city table with the Assigned keys of Category and values of Reporting.
-                                    Next I Edited the schema of this table, then selected the district column and edited the tag for it so the PII value is set to true.
-                                    I then edited the permissions for the analyst role so that the Resources matched by LF Tags for data that is now PII data 
-                                    in the category of Reporting so that this data has the database permissions of describe, 
-                                    and table permissions of Select. 
-                                    I then edited the world_x_city table and changed the Table properties to add a new key 
-                                    called Department with a value of Sales. This new tag allows for quick searching of the data catalog 
-                                    for tables with certain departments. 
-                                </p>
-
-                                <h2 style="text-align:center;">Preparation and analysis of data in our data lake using AWS Glue DataBrew</h2>
-                                <h4 style="text-align:center;">EDA with DataBrew</h4>
-                                <p>
-                                    I created a DataBrew project and used sample sales customer data to perform exploratory data analysis.
-                                </p>
-                                <div class="image main"><img src="images/DataBrew_Profile.png" alt="" /></div>
-                                
-                                <br>
-
-                                <h4 style="text-align:center;">Analysis and transformation of data in our data lake with Glue DataBrew</h4>
-                                <p>
-                                    With further analysis, I used DataBrew to transform the data and the picture below displays the transformation steps I applied.
-                                </p>
-                                <div><img src="images/DataBrew_Steps.png" alt="" /></div>
-
-                                <br>
-
-                                
-                                <h4 style="text-align:center;">Create DataBrew Recipes and applying them to larger datasets</h4>
-                                <p> 
-                                    I saved the customer sales transformation recipe by publishing it. 
-                                    Then I created a DataBrew Job called customer_job using the recipe I just published, and set the output to have a file type of parquet,
-                                    and set it to output to Amazon S3 at the location s3://demo-lakeformation-processed/input/data-preparation/.
-                                    I then ran the job and the processed data appeared
-                                </p>
-
-                                <h2 style="text-align:center;">Using AWS Glue Studio</h2>
-                                <h4 style="text-align:center;">Author ETL job for moving data between the different zones in our data lake</h4>
-                                <p>
-                                    I created a job in AWS Glue Studio and used the visual with a blank canvas as the starting option.
-                                    I created a Data Source for AWS Glue Data Catalog. 
-                                    I set the Database to demo-raw and Table to salescustomer. 
-                                    For the next step I added a SelectFields Transformation and selected customer_id, first_name, last_name, and gender.
-                                    Lastly, I created a Data Target - S3 bucket node with properties set to Parquet for the format,
-                                    None for the Compression Type, and S3://demo-lakeformation-processed/input/customer for the path.
-                                    I set the Data Catalog update options to Create a table in the Data Catalog and on subsequent runs, update the schema and add new partitions.
-                                    The Database for the target node was set to demo-processed, and the Table name was set to processed_customers.
-                                    I then set the name of the job to processed_customers_job in Job details.
-                                    I set an IAM Role for the job called myWorkflowRole and set the number of workers to 3, and the number of retries to 0.
-                                    I then saved the Job and sucessfully ran it.
-                                    There is now new data in the demo-lakeformation-processed S3 bucket and a new table in the Lake Formation Data Catalog called processed_customers.
-                                </p>
-
-                                <br>
-                                <h4 style="text-align:center;">Ingest data from DynamoDB into the data lake using AWS glue and catalog it</h4>
-                                <p>
-                                    For this section of the project, the first step is to create a DynamoDB table named movies.
-                                    After the table is created, I created an item with an id of 1, a movie_name attribute with a value of The new dawn, director attribute with a value of James Cole, and an actor attribute with a value of Sarah Jane.
-                                    I created 2 more items with similar values. 
-                                    Next, I created a new crawler with a data store using the table that was just created,
-                                    then I set the Database ot demo-raw and gave it a prefix of raw_.
-                                    I ran the crawler and the new raw_movies table was created in the Lake Formaiton data catalog.
-                                    I then created a new folder in my demo-lakeformation-raw/input folder called movie.
-                                    Then I created a new job in AWS Glue Studio starting with an AWS data catalog Source node with the Database set to demo-raw and the Table set to raw_movies for the properties.
-                                    Next I added an S3 bucket Data Target node for the destination with the path being set to the movie folder I just created, and the format set to Parquet and a Compression Type set to None.
-                                    I set the Data Catalog update options to Create a table in the Data Catalog and on subsequent runs, update the schema and add new partitions.
-                                    Then I set the Database to demo-raw and the Table name to raw_movie_ingest.
-                                    I changed the Job name to raw_movie_ingest_Job and get the job 3 workers. 
-                                    The IAM Role was set to myWorkflowRole.
-                                </p>
-
-
-                                <h2 style="text-align:center;">Prepare our data for analytics and reporting</h2>
-                                <h4 style="text-align:center;">Setting up our Amazon Redshift cluster</h4>
-                                <p>
-                                    I went to the Amazon Redshift Service and Created a Free Trial Cluster with the default settings.
-                                </p>
-                                <div class="image main"><img src="images/Redshift_Cluster.png" alt="" /></div>
-                                <br>
-                                <h4 style="text-align:center;">Author ETL job for moving data from the data lake into the Redshift warehouse</h4>
-                                <p>
-                                    For this section the first step was to go into the Redshift query editor v2 and create a new database called test, and within that
-                                    database, I created a new table called customer. I created fields id, firstname, lastname, and gender. 
-                                    I gave all the fields the appropriate datatypes.
-                                    Then I created a new connection in AWS Glue specifying the cluster and the respective credentials required to allow glue to access the data warehouse.
-                                    I tested the connection with the myWorkflowRole IAM Role.
-                                    I created a new AWS Glue crawler called warehouse_customer_ingest. The data store was set to JDBC and the connection was set to redshift.
-                                    The path was set to test/public/customer.
-                                    The Crawler IAM Roles was set to myWorkflowRole.
-                                    Frequency was set to run on demand.
-                                    The Database was set to demo-raw and the Prefix was set to redshift_.
-                                    I then finished creating the crawler and verified the redshift_test_public_customer table was added to the data catalog in AWS Lake Formation.
-                                    Next I went to AWS Glue Studio and created a new Job with a blank canvas.
-                                    First an AWS Glue Data Catalog Data Source node was created and I set the database to demo-processed, and the Table to processed_customers.
-                                    Then I created a transformation node to do some renaming of fields and changing the datatype of the id field to match the schema of the table in the redshift cluster test database.
-                                    Lastly, I created a Data target - Redshift node as my destination and set the database propert to be demo-raw and the Table property to be redshift_test_public_customer, and changed the handling of new records to be insert and update.
-                                    I changed the number of workers to 3 and retries to 0, then I saved the job and ran it.
-                                </p>
-
-                                <br>
-                                <h4 style="text-align:center;">Using Redshift Spectrum for querying data located in our data lake</h4>
-                                <p>
-                                    Redshift Spectrum is a feature that lets us query data in our lake without having to move any new or duplicate data to our existing data warehouse.
-                                    For this section I created a schema in my test database in the same redshift cluster. 
-                                    I set the Schema name to processed and the Glue database name to demo-processed. I gave the schema appropriate IAM Roles to access the Glue database.
-                                    I then ran a query against the tables that were created with this schema successfully which was a query ran against data not yet in our data warehouse.
-                                </p>
-
-                                <br>
-                                <h2 style="text-align:center;">Using Amazon Macie for managing data security and privacy in our data lake</h2>
-                                <p>
-                                    For this section I created an Amazon Macie Job on the demo-lakeformation-raw S3 bucket called 
-                                    datalake_raw_PII_Job. I added a custom PII identifier with regex to detect phone numbers and ran the job, 
-                                    Macie successfully detected phonenumbers as well as other information such as names and addresses.
-                                </p>
-                                <div class="image main"><img src="images/Macie_Findings.png" alt="" /></div>
 							</section>
 
 					</div>
