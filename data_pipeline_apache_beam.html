@@ -1,0 +1,196 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Paul Hankins</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-dark.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.css" integrity="sha512-Dqf5696xtofgH089BgZJo2lSWTvev4GFo+gA2o4GullFY65rzQVQLQVlzLvYwTo0Bb2Gpb6IqwxYWtoMonfdhQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.css" integrity="sha512-cbQXwDFK7lj2Fqfkuxbo5iD1dSbLlJGXGpfTDqbggqjHJeyzx88I3rfwjS38WJag/ihH7lzuGlGHpDBymLirZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+				<header id="header">
+					<a href="index.html" class="logo">Home</a>
+				</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">About me</a></li>
+							<li  class="active"><a href="engineer-projects-1.html">Data Engineer Projects</a></li>
+                            <li><a href="analytics-projects-1.html">Data Analytics Projects</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+							<li><a href="https://github.com/Piblo99" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+								<header class="major">
+									<h1>Apache Beam Batch Processing Pipeline<br />
+								</header>
+                                <h2 style="text-align:center;">Use Case</h2>
+                                <p>
+                                    We work for datastack.tv as Data Engineers.
+                                    <br><br>
+                                    Web analytics dataset in CSV format that stores visits from our website.
+                                    <br><br>
+                                    Fields: IP address, start timestamp, end timestamp
+                                    <br><br>
+                                    Calculate the average session duration per country
+
+                                    <div class="image main"><img src="images/beam_overview.png" alt="" /></div>
+
+                                    <h2 style="text-align:center;">Creating a Pipeline</h2>
+
+                                </p>
+
+<pre><code class="language-python line-numbers">import logging 
+import argparse
+import requests
+from datetime import datetime
+
+import apache_beam as beam
+
+
+def parse_lines(element):
+    return element.split(",")
+
+class CalcVisitDuration(beam.DoFn):
+    def process(self, element):
+    dt_format = "%Y-%m-%dT%H-%M-%S"
+    start_dt = datetime.strptime(element[1], dt_format)
+    end_dt = datetime.strptime(element[2], dt_format)
+
+    diff = end_dt - start_dt
+
+    yield [element[0], diff.total_seconds()]
+
+
+class GetIpCountryOrigin(beam.DoFN):
+    def process(self, element):
+        ip = element[0]
+        response = requests.get(f"Http://ip-api.com/json/{ip}?fields=country")
+        country = response.json()["country"]
+
+        yield [ip, country]
+
+
+def map_country_to_ip(element, ip_map):
+    ip = element[0]
+    return [ip_map[ip]], element[1]]
+
+
+def run(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input")
+    parser.add_argument("--output")
+    args, beam_args = parser.parse_known_args(argv)
+
+    with beam.Pipeline(argv=beam_args) a p:
+        lines = (
+            p | "ReadFile" >> beam.io.ReadFromText(args.input, skip_headeR_lines=1)
+              | "ParseLines" >> beam.Map(parse_lines)
+        )
+
+        duration = lines | "CalcVisitDuration" >> beam.ParDo(CalcVisitDuration())
+        ip_map = lines | "GetIpCountryOrigin" >> beam.ParDo(GetIpCountryOrigin())
+
+        result = (
+            duration 
+            | "MapIpToCountry" >> beam.Map(map_country_to_ip, ip_map=beam.pvalue.AsDict(ip_map))
+            | "AverageByCountry" >> beam.CombinePerKey(beam.combiners.MeanCombineFn())
+            | "FormatOutput" >> beam.Map(lambda element: ",".join(map(str, element)))
+            )
+
+        result | "WriteOutput" >> beam.io.WriteToText(
+            args.output, file_name_suffix=".csv"
+        )
+
+if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.WARNING)
+    run()
+</code></pre><br>
+
+<h3 style="text-align:center;">Input</h3>
+
+<pre>
+ip,start_ts,end_ts
+139.162.212.162,2020-09-15T15:30:15,2020-09-15T15:32:55
+84.68.9.147,2020-09-15T15:34:28,2020-09-15T15:38:32
+46.30.12.4,2020-09-15T15:39:24,2020-09-15T15:41:34
+46.30.12.41,2020-09-15T09:55:12,2020-09-15T09:57:11
+132.145.49.223,2020-09-15T09:56:00,2020-09-15T09:56:37
+3.9.196.54,2020-09-15T09:56:35,2020-09-15T09:58:03
+75.76.203.37,2020-09-15T14:33:40,2020-09-15T14:35:08
+18.224.225.62,2020-09-15T14:36:55,2020-09-15T15:38:12
+64.125.52.186,2020-09-15T15:30:15,2020-09-15T15:32:55
+50.19.223.52,2020-09-15T14:37:49,2020-09-15T14:38:19
+23.88.107.66,2020-09-15T14:47:42,2020-09-15T14:56:31
+52.26.116.49,2020-09-15T15:34:02,2020-09-15T15:38:57
+24.110.9.242,2020-09-15T15:38:31,2020-09-15T15:39:48
+</pre>
+
+<h3 style="text-align:center;">Output</h3>
+
+<pre>
+United Kingdrom,129.6666666666666
+United States,693.7142857142857
+</pre>
+
+</section>
+
+					</div>
+
+				<!-- Footer -->
+                <footer id="footer">
+                    <section class="alt">
+                        <h3>Address</h3>
+                        <p>BARTLESVILLE, OK</p>
+                    </section>
+                    <section>
+                        <h3>Phone</h3>
+                        <p>(504) 201-4748</p>
+                    </section>
+                    <section>
+                        <h3>Email</h3>
+                        <p>paulhankins99@gmail.com</p>
+                    </section>
+                    <section>
+                        <h3>Social</h3>
+                        <ul class="icons alt">
+                            <li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands alt fa-linkedin"><span class="label">Linkedin</span></a></li>
+                            <li><a href="https://github.com/Piblo99" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+                        </ul>
+                    </section>
+            </footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.js" integrity="sha512-st608h+ZqzliahyzEpETxzU0f7z7a9acN6AFvYmHvpFhmcFuKT8a22TT5TpKpjDa3pt3Wv7Z3SdQBCBdDPhyWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js" integrity="sha512-/kVH1uXuObC0iYgxxCKY41JdWOkKOxorFVmip+YVifKsJ4Au/87EisD1wty7vxN2kAhnWh6Yc8o/dSAXj6Oz7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.js" integrity="sha512-BttltKXFyWnGZQcRWj6osIg7lbizJchuAMotOkdLxHxwt/Hyo+cl47bZU0QADg+Qt5DJwni3SbYGXeGMB5cBcw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-python.min.js" integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	</body>
+</html>
