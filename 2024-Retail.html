@@ -1,0 +1,399 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Paul Hankins</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-dark.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.css" integrity="sha512-Dqf5696xtofgH089BgZJo2lSWTvev4GFo+gA2o4GullFY65rzQVQLQVlzLvYwTo0Bb2Gpb6IqwxYWtoMonfdhQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.css" integrity="sha512-cbQXwDFK7lj2Fqfkuxbo5iD1dSbLlJGXGpfTDqbggqjHJeyzx88I3rfwjS38WJag/ihH7lzuGlGHpDBymLirZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+				<header id="header">
+					<a href="index.html" class="logo">Home</a>
+				</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">About me</a></li>
+                            <li  class="active"><a href="2024-engineer-projects.html">Engineer Projects 2024</a></li>
+							<li  class=""><a href="engineer-projects-2.html">Engineer Projects 2022</a></li>
+                            <li><a href="analytics-projects-1.html">Analytics Projects 2022</a></li>
+						</ul>
+						<ul class="icons">
+							<li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands fa-linkedin"><span class="label">Linkedin</span></a></li>
+							<li><a href="https://github.com/Piblo99" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+                                <header class="major">
+                                    <h1>Retail Sales Data Warehouse Project</h1>
+                                    <h3>Project Overview</h3>
+                                    <p>This project aims to consolidate various types of data into a single data warehouse to enable comprehensive insights across different aspects of the retail business.</p>
+                                
+                                    <h3>What</h3>
+                                    <p>The creation of a centralized data warehouse consolidating POS transactions, customer loyalty data, inventory data, and sales forecasts.</p>
+                                
+                                    <h3>Why</h3>
+                                    <ul>
+                                        <li><strong>To Provide a Unified View:</strong> Allows for a holistic view of operations which is critical for understanding the performance across different stores, products, and customer segments.</li>
+                                        <li><strong>To Enable Advanced Analytics:</strong> With all relevant data in one place, apply advanced analytics to uncover patterns and trends that inform strategic decisions.</li>
+                                        <li><strong>To Enhance Operational Efficiency:</strong> Automate the integration of data into the warehouse, significantly reducing time and labor involved in manual data processes.</li>
+                                        <li><strong>To Inform Inventory Management:</strong> Provide real-time insights into inventory levels, helping maintain optimal stock levels and better supply chain decisions.</li>
+                                        <li><strong>To Improve Sales Forecasting:</strong> Enable more accurate sales forecasting through the use of historical data and predictive analytics.</li>
+                                        <li><strong>To Tailor Customer Experiences:</strong> Integrate customer loyalty and behavior analytics to personalize marketing and sales strategies, enhancing customer satisfaction and loyalty.</li>
+                                    </ul>
+                                
+                                    <h3>How</h3>
+                                    <p>The project will leverage state-of-the-art ETL tools and modern cloud-based data warehousing technologies to aggregate and process data from multiple sources, ensuring data consistency and integrity.</p>
+                                </header>
+                                <h3 style="text-align:center;">Use Case</h3>
+                                <p>
+                                    To Start off this project we need to answer some questions.
+
+                                    <ul>
+                                        <li>
+                                            <b>What</b> is it we are trying to do?
+                                        </li>
+                                        <li>
+                                            <b>Why</b> are we doing it?
+                                        </li>
+                                        <li>
+                                            <b>How</b> are we going to achieve it?
+                                        </li>
+                                    </ul>
+                                    
+                                    <h3 style="text-align:center;">What</h3>
+
+                                    <ul>
+                                        <li>
+                                            Northwind Traders is an export import who trades around the world for specialty foods.
+                                        </li>
+                                        <li>
+                                            Their existing architecture is mostly a mix of on-premise & legacy systems, including their MySQL database which is the primary operational database.
+                                        </li>
+                                        <li>
+                                            This is where all the sales transactions are recorded between company and it's customers.
+                                        </li>
+                                        <li>
+                                            Same MySQL database is also being used to generate reports & build analytics solutions.
+                                        </li>
+                                        <li>
+                                            They are struggling to keep up with reporting requirements and causing the database to slow down, impacting their day to day business.
+                                        </li>
+                                        <li>
+                                            Northwind traders want to modernise their data & reporting solutions & move away from on-prem.
+                                        </li>
+                                    </ul>
+                                    
+                                    <h3 style="text-align:center;">Why</h3>
+
+                                    <ul>
+                                        <li>
+                                            <ul>
+                                                They want to modernise their existing infrastructure for:
+                                                <li>
+                                                    Better scalability
+                                                </li>
+                                                <li>
+                                                    Reduce load on operational systems
+                                                </li>
+                                                <li>
+                                                    Improved reporting speed
+                                                </li>
+                                                <li>
+                                                    Improved data security
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+
+                                    <h3 style="text-align:center;">How</h3>
+
+                                    <ul>
+                                        <li>
+                                            Northwind Traders will migrate their existing database system to Google Cloud Platform (GCP).
+                                        </li>
+                                        <li>
+                                            MySQL On-Prem will be replaced with a fully managed Cloud SQL for MySQL.
+                                        </li>
+                                        <li>
+                                            During this migration, they need help with setting up an OLAP system for reports.
+                                        </li>
+                                        <li>
+                                            BigQuery was selected to run the OLAP warehouse.
+                                        </li>
+                                        <li>
+                                            Need to build high priority reports first to access the new system and drive adoption.
+                                        </li>
+                                        <li>
+                                            Dimensional Data Warehouse will be built on BigQuery to support with reporting requirements.
+                                        </li>
+                                    </ul>
+                                </p>
+
+
+                                <h3 style="text-align:center;">A Project Management Process</h3>
+
+                                Now that we have a high level overview of what is wanted, we can use  
+                                Ralph Kmball's Business Dimensional Lifecycle process to help us
+                                guide our way through the steps that need to be taken to 
+                                execute a successful Dimensional Modeling project.
+
+                                <div class="image main"><img src="https://www.researchgate.net/profile/Beth-Warner/publication/29441267/figure/fig1/AS:669531068452869@1536640054649/The-Business-Dimensional-Lifecycle-Kimball-Ralph-et-al-The-Data-Warehouse-Lifecycle.png" alt="" /></div>
+
+                                <h3 style="text-align:center;">Reuirements Gathering</h3>
+                                <p>
+                                The first part we will touch on in this process involves 
+                                gathering Requirements from the business and can be 
+                                broken down as follows:
+                                <ul>
+                                    <li>
+                                        Define the Business Process
+                                    </li>
+                                    <li>
+                                        Conduct Data Profiling
+                                    </li>
+                                    <li>
+                                        Create Bus Matrix High level entities
+                                    </li>
+                                    <li>
+                                        Create Conceptual Model
+                                    </li>
+                                </ul>
+
+
+                                <h3 style="text-align:center;">Define the Business Process</h3>
+                                During this step, There would be an interview process with the business and or stakeholders.
+                                Let's say after this during this interview process, the following 
+                                reporting requirements have been identified.
+
+                                <ul>
+                                    <li>
+                                        <b>
+                                            Sales Overview
+                                        </b>
+                                        <ul>
+                                            <li>
+                                                Overall sales reports to understand our customers better. What is being sold, what sells the most wnd where, what sells the least. The goal is to have a general overview of how the business is going.
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <b>
+                                            Sales Agent Tracking
+                                        </b>
+                                        <ul>
+                                            <li>
+                                                Track sales and performance of each sales agent to adjust commissions, reward high achievers, and empower low achievers.
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <b>
+                                            Product Inventory
+                                        </b>
+                                        <ul>
+                                            <li>
+                                                Understand the current inventory levels and how to improve stock management. What suppliers do we have and how much is being purchased. This will allow us to potentially broker better deals with suppliers.
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <b>
+                                            Customer Reporting
+                                        </b>
+                                        <ul>
+                                            <li>
+                                                Allow customers to understand their purchase orders, how much and when they are buying, empowering them to make data driven decisions and utilize the data to join to their sales data.
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                </p>
+
+                                <h3 style="text-align:center;">Data Profiling</h3>
+                                <p>
+                                    There are many specialized tools that can be used to perform data profiling.
+                                    For this project, Manual data profiling is the option of choice.
+                                    To begin the process of manual data profiling, I decided to upload the schemas
+                                    of tables from the company's transaction data into BigQuery and profiled the data 
+                                    in there since BigQuery will be used as our data warehouse. This can either be achieved
+                                    by exporting csv files from the transactional database and uploading them to bigquery,
+                                    or creating the tables and inserting values with SQL. I chose the CSV option because it is quicker.
+                                    <br><br>
+
+                                    The first data profiling step done was to check the datatypes. I noticed that the id
+                                    column has a mode set to NULLABLE. This is probably not what we want because at this stage,
+                                    it can be assumed that id is most likely a primary key. Primary keys need to be 
+                                    Unique and non-nullable.
+
+                                    <div class="image main"><img src="images/BigQuery_Profiling_1.png"/></div>
+
+
+                                    The next thing I checked was the values within all the columns to check for any issues.
+                                    The first thing I noticed was the businees_phone and fax_number columns has the same values for every record. This 
+                                    could be an issue indicating a placeholder value was used or something went wrong with the data.
+                                    We could go to our OLTP system experts and have a discussion with them as to why these numbers seem incorrect.
+                                    Laregely all the Email address values are empty too. 
+                                    
+                                    <div class="image main"><img src="images/BigQuery_Profiling_2.png"/></div>
+
+                                    The next thing I wanted to check was if the id column of the table was really unique. 
+                                    I opened up a query editor in BigQuery and wrote a SQL statement that would generate 
+                                    information about how unique specific values are within a column. for the id value of 1,
+                                    it is clear that there exists duplicate values which is atypical of id columns.
+
+                                    <div class="image main"><img src="images/BigQuery_Profiling_3.png"/></div>
+
+                                    This profiling was just for the Customer table, but this process needs to be done for 
+                                    other tables that that provide important business information.
+                                </p>
+                                
+                                <h3 style="text-align:center;">Bus Matrix - High Level Entities</h3>
+
+                                For this part of the project I looked through the tables for transactional data,
+                                and determined at a high level what entities would be needed in a warehouse and the dimensions  that should be applied to it. 
+                                
+                                <div class="image main"><img src="images/BigQuery_Bus_Matrix.png"/></div>
+                                
+                                <h3 style="text-align:center;">Conceptual Model</h3>
+
+                                The 3 major entities were determined to be sales, inventory, and purchase order.
+                                A conceptual model was created in draw.io to illustrate.
+
+                                <div class="image main"><img src="images/conceptual_diagram.png"/></div>
+
+                                <h3 style="text-align:center;">Architecture Diagram</h3>
+
+                                <div class="image main"><img src="images/BQ_architecture.png"/></div>
+
+                                <h3 style="text-align:center;">Dimensional Modeling</h3>
+
+                                <p>
+                                    The process of Dimensional Modeling can be described in these 4 steps:
+                                    <ol>
+                                        <li>
+                                            Select the business process
+                                        </li>
+                                        <li>
+                                            Declare the grain
+                                        </li>
+                                        <li>
+                                            Identify the dimensions
+                                        </li>
+                                        <li>
+                                            Identify the facts
+                                        </li>
+                                    </ol>
+
+                                    After these steps are completed, The logical model can be created next from the conceptual model.
+                                    Then Source to Target mapping documents can be created to show how the tablse in the data warehouse came from 
+                                    the tables in the transactional database.
+                                </p>
+                                <h3 style="text-align:center;">Detailed Bus Matrix</h3>
+                                <p>
+                                    I created a more detailed bus matrix the identifies business processes, associated fact tables, and granularity. 
+                                    Starting with finding the highest priority process, sales in this case, and then declaring
+                                    a low level grain. Then I found lower priority business processes and followed the same steps for those.
+                                </p>
+
+                                <div class="image main"><img src="images/BQ_detailed_matrix.png"/></div>
+
+                                <h3 style="text-align:center;">Source to Target Mapping</h3>
+                                <p>
+                                    I created a workbook that is used to show the mapping of schemas from the 
+                                    transactional database to other layers of the data warehouse project.
+                                    This was done for the following Sources and targets:
+                                    <ul>
+                                        <li>
+                                            Source to BQ Data Lake
+                                        </li>
+                                        <li>
+                                            BQ Data LAke to Staging
+                                        </li>
+                                        <li>
+                                            Data Lake to Data Warehouse
+                                        </li>
+                                        <li>
+                                            Data Warehouse to OBT
+                                        </li>
+                                    </ul>
+                                </p>
+                                <div class="image main"><img src="images/BQ_target_mapping.png"/></div>
+
+                                <h3 style="text-align:center;">Logical Model</h3>
+                                <p>
+                                    With all of the target mapping documents created and business processes
+                                    defined, we can move on to creating the logical model of the data warehouse tables.
+                                </p>
+                                <div class="image main"><img src="images/logical_diagram.png"/></div>
+
+                                <h3 style="text-align:center;">Physical Model Design</h3>
+                                <p>
+                                    With the logical model created, we can then indicate keys and 
+                                    add the datatypes of fields, then properly link shared dimensions
+                                    to their associated fact tables, and this leads to the creation
+                                    of our Physical models.
+                                </p>
+                                <h3 style="text-align:center;">Physical Model</h3>
+
+                                <div class="image main"><img src="images/phyisical_diagram.png"/></div>
+                                
+							</section>
+
+					</div>
+
+				<!-- Footer -->
+                <footer id="footer">
+                    <section class="alt">
+                        <h3>Address</h3>
+                        <p>BRIDGE CITY, LA</p>
+                    </section>
+
+                    <section>
+                        <h3>Email</h3>
+                        <p>paulhankins99@gmail.com</p>
+                    </section>
+                    <section>
+                        <h3>Social</h3>
+                        <ul class="icons alt">
+                            <li><a href="https://www.linkedin.com/in/paul-hankins-075119204/" class="icon brands alt fa-linkedin"><span class="label">Linkedin</span></a></li>
+                            <li><a href="https://github.com/Piblo99" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+                        </ul>
+                    </section>
+            </footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/toolbar/prism-toolbar.min.js" integrity="sha512-st608h+ZqzliahyzEpETxzU0f7z7a9acN6AFvYmHvpFhmcFuKT8a22TT5TpKpjDa3pt3Wv7Z3SdQBCBdDPhyWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js" integrity="sha512-/kVH1uXuObC0iYgxxCKY41JdWOkKOxorFVmip+YVifKsJ4Au/87EisD1wty7vxN2kAhnWh6Yc8o/dSAXj6Oz7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/line-numbers/prism-line-numbers.min.js" integrity="sha512-BttltKXFyWnGZQcRWj6osIg7lbizJchuAMotOkdLxHxwt/Hyo+cl47bZU0QADg+Qt5DJwni3SbYGXeGMB5cBcw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-python.min.js" integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	</body>
+</html>
