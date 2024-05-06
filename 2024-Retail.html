@@ -33,7 +33,14 @@
 							<li><a href="https://github.com/Piblo99" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
 						</ul>
 					</nav>
-
+                    
+                    <style>
+                        img {
+                            max-width: 1000px;
+                            width: 100%;
+                            height: auto;
+                        }
+                    </style>
 				<!-- Main -->
 					<div id="main">
 
@@ -41,324 +48,180 @@
 							<section class="post">
                                 <header class="major">
                                     <h1>Retail Sales Data Warehouse Project</h1>
-                                    <h3>Project Overview</h3>
-                                    <p>This project aims to consolidate various types of data into a single data warehouse to enable comprehensive insights across different aspects of the retail business.</p>
-                                
-                                    <h3>What</h3>
-                                    <p>The creation of a centralized data warehouse consolidating POS transactions, customer loyalty data, inventory data, and sales forecasts.</p>
-                                
-                                    <h3>Why</h3>
-                                    <ul>
-                                        <li><strong>To Provide a Unified View:</strong> Allows for a holistic view of operations which is critical for understanding the performance across different stores, products, and customer segments.</li>
-                                        <li><strong>To Enable Advanced Analytics:</strong> With all relevant data in one place, apply advanced analytics to uncover patterns and trends that inform strategic decisions.</li>
-                                        <li><strong>To Enhance Operational Efficiency:</strong> Automate the integration of data into the warehouse, significantly reducing time and labor involved in manual data processes.</li>
-                                        <li><strong>To Inform Inventory Management:</strong> Provide real-time insights into inventory levels, helping maintain optimal stock levels and better supply chain decisions.</li>
-                                        <li><strong>To Improve Sales Forecasting:</strong> Enable more accurate sales forecasting through the use of historical data and predictive analytics.</li>
-                                        <li><strong>To Tailor Customer Experiences:</strong> Integrate customer loyalty and behavior analytics to personalize marketing and sales strategies, enhancing customer satisfaction and loyalty.</li>
-                                    </ul>
-                                
-                                    <h3>How</h3>
-                                    <p>The project will leverage state-of-the-art ETL tools and modern cloud-based data warehousing technologies to aggregate and process data from multiple sources, ensuring data consistency and integrity.</p>
-                                </header>
-                                <h3 style="text-align:center;">Use Case</h3>
-                                <p>
-                                    To Start off this project we need to answer some questions.
-
-                                    <ul>
-                                        <li>
-                                            <b>What</b> is it we are trying to do?
-                                        </li>
-                                        <li>
-                                            <b>Why</b> are we doing it?
-                                        </li>
-                                        <li>
-                                            <b>How</b> are we going to achieve it?
-                                        </li>
-                                    </ul>
                                     
-                                    <h3 style="text-align:center;">What</h3>
 
-                                    <ul>
-                                        <li>
-                                            Northwind Traders is an export import who trades around the world for specialty foods.
-                                        </li>
-                                        <li>
-                                            Their existing architecture is mostly a mix of on-premise & legacy systems, including their MySQL database which is the primary operational database.
-                                        </li>
-                                        <li>
-                                            This is where all the sales transactions are recorded between company and it's customers.
-                                        </li>
-                                        <li>
-                                            Same MySQL database is also being used to generate reports & build analytics solutions.
-                                        </li>
-                                        <li>
-                                            They are struggling to keep up with reporting requirements and causing the database to slow down, impacting their day to day business.
-                                        </li>
-                                        <li>
-                                            Northwind traders want to modernise their data & reporting solutions & move away from on-prem.
-                                        </li>
-                                    </ul>
+                                    <!-- Project Scope Section -->
+                                    <section id="project-scope" class="main special">
+                                        <header class="major">
+                                            <h3>Identify Project Scope</h3>
+                                        </header>
+                                        <p>The scope of this retail data warehouse project includes the design, development, and implementation of a data warehousing solution tailored for the retail industry using the Northwind database. It covers the following areas:</p>
+                                        <ul style="text-align:left;">
+                                            <li>Defining the data sources and data sets to be included.</li>
+                                            <li>Establishing the data integration and transformation requirements.</li>
+                                            <li>Designing the data model to support business intelligence and reporting.</li>
+                                            <li>Creating a scalable infrastructure for data storage and retrieval.</li>
+                                            <li>Ensuring data quality and governance throughout the project lifecycle.</li>
+                                            <li>Setting up the project's technical and business constraints, timelines, and deliverables.</li>
+                                        </ul>
+                                        <p>The project aims to enable better decision-making through enhanced data insights and analytics, providing a comprehensive view of the retail sales operations.</p>
+                                    </section>
                                     
-                                    <h3 style="text-align:center;">Why</h3>
+                                    <!-- Project Planning Section -->
+                                    <section id="project-planning" class="main special">
+                                        <header class="major">
+                                            <h3>Project Planning</h3>
+                                        </header>
+                                        <p>To ensure the success of the Retail Sales Data Warehouse project, a strategic plan has been developed. This plan will guide the project from inception through to completion:</p>
+                                        <ol style="text-align:left;">
+                                            <li>Defining the detailed scope of the data warehouse requirements.</li>
+                                            <li>Setting clear, measurable goals and objectives aligned with retail business strategies.</li>
+                                            <li>Outlining the implementation strategy including the methodologies and technologies to be used.</li>
+                                            <li>Identifying the necessary resources, including team members, hardware, and software tools.</li>
+                                            <li>Creating a detailed project timeline with milestones and deliverables for each phase of the project.</li>
+                                        </ol>
+                                        <p>This project planning stage is crucial for aligning expectations, setting clear directions, and laying the foundation for the subsequent steps in the data warehouse development process.</p>
+                                    </section>
+                                    
+                                    <!-- Requirements Gathering Section -->
+                                    <section id="requirements-gathering" class="main special">
+                                        <header class="major">
+                                            <h3>Gather Requirements/Requirements Definition</h3>
+                                        </header>
+                                        <p>A critical step in designing a data warehouse is to understand the business needs and data requirements. This process includes:</p>
+                                        <ul style="text-align:left;">
+                                            <li>Conducting user interviews to capture user stories and expectations.</li>
+                                            <li>Reviewing and digesting existing reports and artifacts to ensure continuity and improvement.</li>
+                                            <li>Determining the inputs and data sources as well as identifying who will provide them.</li>
+                                            <li>Assigning responsibility among team members for different aspects of requirement gathering.</li>
+                                            <li>Performing thorough interviews and discussions to refine and document requirements.</li>
+                                            <li>Analyzing existing data sources for quality, structure, and integration feasibility.</li>
+                                        </ul>
+                                        <p>This foundational stage sets the stage for a data warehouse that is closely aligned with business objectives and user needs.</p>
 
-                                    <ul>
-                                        <li>
-                                            <ul>
-                                                They want to modernise their existing infrastructure for:
-                                                <li>
-                                                    Better scalability
-                                                </li>
-                                                <li>
-                                                    Reduce load on operational systems
-                                                </li>
-                                                <li>
-                                                    Improved reporting speed
-                                                </li>
-                                                <li>
-                                                    Improved data security
-                                                </li>
+                                        <!-- Requirements Gathering - Interview Questions -->
+                                        <section id="requirements-interview-questions" class="main">
+                                            <header class="major">
+                                                <h4>Common Interview Questions During Requirements Gathering</h4>
+                                            </header>
+                                            <p>Engaging with stakeholders through interviews is a pivotal part of the requirements gathering process. Here is a selection of common questions that help in uncovering the necessary details for a successful data warehouse project:</p>
+                                            <ul style="text-align:left;">
+                                                <li>What is the primary purpose or objective of this data warehouse implementation?</li>
+                                                <li>What issues is the business currently facing in daily operations?</li>
+                                                <li>Are there any regulatory or compliance requirements driving this project?</li>
+                                                <li>What temporary measures or workarounds are currently in place?</li>
+                                                <li>What improvements or benefits does the business expect from this implementation?</li>
+                                                <li>What are the risks if the project is not completed on time, and how critical are these timelines?</li>
+                                                <li>What data is currently available, and what challenges are associated with it?</li>
+                                                <li>What are the short-term and long-term deliverables and goals for this project?</li>
+                                                <li>How does the business benefit from the data warehouse both immediately and in the future?</li>
                                             </ul>
-                                        </li>
-                                    </ul>
+                                            <p>These questions are tailored to initiate detailed conversations that inform the design and implementation strategy, leading to a solution that truly aligns with business goals and operational requirements.</p>
+                                        </section>
 
-                                    <h3 style="text-align:center;">How</h3>
+                                    </section>
 
-                                    <ul>
-                                        <li>
-                                            Northwind Traders will migrate their existing database system to Google Cloud Platform (GCP).
-                                        </li>
-                                        <li>
-                                            MySQL On-Prem will be replaced with a fully managed Cloud SQL for MySQL.
-                                        </li>
-                                        <li>
-                                            During this migration, they need help with setting up an OLAP system for reports.
-                                        </li>
-                                        <li>
-                                            BigQuery was selected to run the OLAP warehouse.
-                                        </li>
-                                        <li>
-                                            Need to build high priority reports first to access the new system and drive adoption.
-                                        </li>
-                                        <li>
-                                            Dimensional Data Warehouse will be built on BigQuery to support with reporting requirements.
-                                        </li>
-                                    </ul>
-                                </p>
-
-
-                                <h3 style="text-align:center;">A Project Management Process</h3>
-
-                                Now that we have a high level overview of what is wanted, we can use  
-                                Ralph Kmball's Business Dimensional Lifecycle process to help us
-                                guide our way through the steps that need to be taken to 
-                                execute a successful Dimensional Modeling project.
-
-                                <div class="image main"><img src="https://www.researchgate.net/profile/Beth-Warner/publication/29441267/figure/fig1/AS:669531068452869@1536640054649/The-Business-Dimensional-Lifecycle-Kimball-Ralph-et-al-The-Data-Warehouse-Lifecycle.png" alt="" /></div>
-
-                                <h3 style="text-align:center;">Reuirements Gathering</h3>
-                                <p>
-                                The first part we will touch on in this process involves 
-                                gathering Requirements from the business and can be 
-                                broken down as follows:
-                                <ul>
-                                    <li>
-                                        Define the Business Process
-                                    </li>
-                                    <li>
-                                        Conduct Data Profiling
-                                    </li>
-                                    <li>
-                                        Create Bus Matrix High level entities
-                                    </li>
-                                    <li>
-                                        Create Conceptual Model
-                                    </li>
-                                </ul>
-
-
-                                <h3 style="text-align:center;">Define the Business Process</h3>
-                                During this step, There would be an interview process with the business and or stakeholders.
-                                Let's say after this during this interview process, the following 
-                                reporting requirements have been identified.
-
-                                <ul>
-                                    <li>
-                                        <b>
-                                            Sales Overview
-                                        </b>
-                                        <ul>
-                                            <li>
-                                                Overall sales reports to understand our customers better. What is being sold, what sells the most wnd where, what sells the least. The goal is to have a general overview of how the business is going.
-                                            </li>
+                                    <!-- Data Profiling Section -->
+                                    <section id="data-profiling" class="main special">
+                                        <header class="major">
+                                            <h3>Data Profiling</h3>
+                                        </header>
+                                        <p>As an essential part of the requirements gathering, data profiling is carried out to ensure the quality and structure of the data are well understood. This step involves:</p>
+                                        <ul style="text-align:left;">
+                                            <li>Analyzing the existing data to identify patterns, anomalies, or inconsistencies.</li>
+                                            <li>Evaluating the data for completeness, accuracy, and reliability.</li>
+                                            <li>Understanding data distribution, key relationships, and dependencies.</li>
+                                            <li>Ensuring data governance and compliance with regulatory requirements.</li>
                                         </ul>
-                                    </li>
+                                        <p>Data profiling results are crucial for defining transformation rules, cleaning strategies, and ultimately for the logical and physical design of the data warehouse.</p>
+                                    </section>
 
-                                    <li>
-                                        <b>
-                                            Sales Agent Tracking
-                                        </b>
-                                        <ul>
-                                            <li>
-                                                Track sales and performance of each sales agent to adjust commissions, reward high achievers, and empower low achievers.
-                                            </li>
+                                    <!-- OLTP Tables Overview -->
+                                    <section id="oltp-tables-overview" class="main">
+                                        <header class="major">
+                                            <h4>OLTP Tables Overview</h4>
+                                        </header>
+                                        <p>Following our data profiling activities, we've pinpointed essential OLTP tables that are instrumental for constructing our dimensional data warehouse. These tables will provide a granular view of the business processes and are vital for a comprehensive analysis:</p>
+                                        <ul style="text-align:left;">
+                                            <li><strong>Customers</strong> - Records purchases made by customers from Northwind.</li>
+                                            <li><strong>Employees</strong> - Details on employees; understanding both customer and employee roles is crucial.</li>
+                                            <li><strong>Orders</strong> - Captures all sales order transactions between customers and Northwind.</li>
+                                            <li><strong>Order Details</strong> - Contains specifics for each order placed by customers.</li>
+                                            <li><strong>Inventory Transaction</strong> - Holds transaction details for inventory movement.</li>
+                                            <li><strong>Products</strong> - Includes all product information to analyze sales performance.</li>
+                                            <li><strong>Shippers</strong> - Details on how orders are shipped from Northwind to customers.</li>
+                                            <li><strong>Suppliers</strong> - Information on suppliers providing goods to Northwind.</li>
+                                            <li><strong>Invoices</strong> - Invoice data created for each order.</li>
                                         </ul>
-                                    </li>
+                                        <p>This selection process is exploratory and somewhat conjectural, requiring an iterative approach with constant validation and refinement in collaboration with business stakeholders. The goal is to ensure that each chosen table aligns perfectly with the intended business processes and analytics requirements.</p>
+                                    </section>
 
-                                    <li>
-                                        <b>
-                                            Product Inventory
-                                        </b>
-                                        <ul>
-                                            <li>
-                                                Understand the current inventory levels and how to improve stock management. What suppliers do we have and how much is being purchased. This will allow us to potentially broker better deals with suppliers.
-                                            </li>
-                                        </ul>
-                                    </li>
-
-                                    <li>
-                                        <b>
-                                            Customer Reporting
-                                        </b>
-                                        <ul>
-                                            <li>
-                                                Allow customers to understand their purchase orders, how much and when they are buying, empowering them to make data driven decisions and utilize the data to join to their sales data.
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                </p>
-
-                                <h3 style="text-align:center;">Data Profiling</h3>
-                                <p>
-                                    There are many specialized tools that can be used to perform data profiling.
-                                    For this project, Manual data profiling is the option of choice.
-                                    To begin the process of manual data profiling, I decided to upload the schemas
-                                    of tables from the company's transaction data into BigQuery and profiled the data 
-                                    in there since BigQuery will be used as our data warehouse. This can either be achieved
-                                    by exporting csv files from the transactional database and uploading them to bigquery,
-                                    or creating the tables and inserting values with SQL. I chose the CSV option because it is quicker.
-                                    <br><br>
-
-                                    The first data profiling step done was to check the datatypes. I noticed that the id
-                                    column has a mode set to NULLABLE. This is probably not what we want because at this stage,
-                                    it can be assumed that id is most likely a primary key. Primary keys need to be 
-                                    Unique and non-nullable.
-
-                                    <div class="image main"><img src="images/BigQuery_Profiling_1.png"/></div>
+                                    <!-- OLTP System ER Diagram -->
+                                    <section id="oltp-er-diagram" class="main">
+                                        <header class="major">
+                                            <h4>OLTP System ER Diagram</h4>
+                                        </header>
+                                        <p>Before we proceed to the conceptual design of our data warehouse, it's essential to understand the relationships and structure of our current OLTP system. Below is the ER diagram representing the Northwind database's schema:</p>
+                                        <figure>
+                                            <img style="max-width:1000px;" src="/images/retail-ssis/Northwind_Physical_ER.png" alt="OLTP System ER Diagram">
+                                            <figcaption>An Entity-Relationship Diagram of the Northwind OLTP System.</figcaption>
+                                        </figure>
+                                        <p>This diagram will serve as a foundation for identifying which entities will translate into dimensions and facts in our data warehouse, ensuring we retain the integrity and context of the data during transformation.</p>
+                                    </section>
 
 
-                                    The next thing I checked was the values within all the columns to check for any issues.
-                                    The first thing I noticed was the businees_phone and fax_number columns has the same values for every record. This 
-                                    could be an issue indicating a placeholder value was used or something went wrong with the data.
-                                    We could go to our OLTP system experts and have a discussion with them as to why these numbers seem incorrect.
-                                    Laregely all the Email address values are empty too. 
-                                    
-                                    <div class="image main"><img src="images/BigQuery_Profiling_2.png"/></div>
+                                    <!-- Data Profiling with SSIS Section -->
+                                    <section id="data-profiling-ssis" class="main special">
+                                        <header class="major">
+                                            <h4>Data Profiling with SSIS</h4>
+                                        </header>
+                                        <p>Data profiling is a vital step in understanding the quality and structure of the data we plan to use in our data warehouse. While there are various methods to perform data profiling, including manual analysis with SQL or Python, SQL Server Integration Services (SSIS) offers a built-in Data Profiling task that simplifies this process.</p>
+                                        <p>In our Northwind database project, we utilized SSIS's profiling task to examine each table comprehensively.</p>
+                                        <p style="text-align:center;"><i>Note that one table's profiles are shown for brevity.</i><br>Here's what we looked into:</p>
+                                        
+                                        <figure>
+                                            <img src="images/retail-ssis/Candidate_Profile.png" alt="Candidate Key Profiles">
+                                            <figcaption>Candidate Key Profiles: Identifying unique records within tables.</figcaption>
+                                        </figure>
 
-                                    The next thing I wanted to check was if the id column of the table was really unique. 
-                                    I opened up a query editor in BigQuery and wrote a SQL statement that would generate 
-                                    information about how unique specific values are within a column. for the id value of 1,
-                                    it is clear that there exists duplicate values which is atypical of id columns.
+                                        <figure>
+                                            <img src="images/retail-ssis/Length_Profile.png" alt="Column Length Distribution Profiles">
+                                            <figcaption>Column Length Distribution Profiles: Analyzing the variation in data size across records.</figcaption>
+                                        </figure>
 
-                                    <div class="image main"><img src="images/BigQuery_Profiling_3.png"/></div>
+                                        <figure>
+                                            <img src="images/retail-ssis/Null_Profile.png" alt="Column Null Ratio Profiles">
+                                            <figcaption>Column Null Ratio Profiles: Assessing the frequency of null values in each column.</figcaption>
+                                        </figure>
 
-                                    This profiling was just for the Customer table, but this process needs to be done for 
-                                    other tables that that provide important business information.
-                                </p>
-                                
-                                <h3 style="text-align:center;">Bus Matrix - High Level Entities</h3>
+                                        <figure>
+                                            <img src="images/retail-ssis/Pattern_Profile.png" alt="Column Pattern Profiles">
+                                            <figcaption>Column Pattern Profiles: Identifying common patterns within textual data.</figcaption>
+                                        </figure>
 
-                                For this part of the project I looked through the tables for transactional data,
-                                and determined at a high level what entities would be needed in a warehouse and the dimensions  that should be applied to it. 
-                                
-                                <div class="image main"><img src="images/BigQuery_Bus_Matrix.png"/></div>
-                                
-                                <h3 style="text-align:center;">Conceptual Model</h3>
+                                        <figure>
+                                            <img src="images/retail-ssis/Stats_Profile.png" alt="Column Statistics Profiles">
+                                            <figcaption>Column Statistics Profiles: Gathering statistics such as min, max, and average values.</figcaption>
+                                        </figure>
 
-                                The 3 major entities were determined to be sales, inventory, and purchase order.
-                                A conceptual model was created in draw.io to illustrate.
+                                        <figure>
+                                            <img src="images/retail-ssis/Value_Profile.png" alt="Column Value Distribution Profiles">
+                                            <figcaption>Column Value Distribution Profiles: Understanding the distribution of data within columns.</figcaption>
+                                        </figure>
 
-                                <div class="image main"><img src="images/conceptual_diagram.png"/></div>
+                                        <figure>
+                                            <img src="images/retail-ssis/Dependency_Profile.png" alt="Functional Dependency Profiles">
+                                            <figcaption>Functional Dependency Profiles: Analyzing the dependencies between different columns.</figcaption>
+                                        </figure>
+                                        
+                                        <br>
+                                        <p>To summarize, through SSIS data profiling, we scrutinized aspects such as the uniqueness of data, column length distributions, presence of nulls, patterns in text data, statistical measures, distribution of values, and column dependencies. This analysis ensures that the data imported into our data warehouse is of high quality and integrity, setting a strong foundation for reliable analytics and business intelligence.</p>
+                                    </section>
 
-                                <h3 style="text-align:center;">Architecture Diagram</h3>
 
-                                <div class="image main"><img src="images/BQ_architecture.png"/></div>
 
-                                <h3 style="text-align:center;">Dimensional Modeling</h3>
 
-                                <p>
-                                    The process of Dimensional Modeling can be described in these 4 steps:
-                                    <ol>
-                                        <li>
-                                            Select the business process
-                                        </li>
-                                        <li>
-                                            Declare the grain
-                                        </li>
-                                        <li>
-                                            Identify the dimensions
-                                        </li>
-                                        <li>
-                                            Identify the facts
-                                        </li>
-                                    </ol>
-
-                                    After these steps are completed, The logical model can be created next from the conceptual model.
-                                    Then Source to Target mapping documents can be created to show how the tablse in the data warehouse came from 
-                                    the tables in the transactional database.
-                                </p>
-                                <h3 style="text-align:center;">Detailed Bus Matrix</h3>
-                                <p>
-                                    I created a more detailed bus matrix the identifies business processes, associated fact tables, and granularity. 
-                                    Starting with finding the highest priority process, sales in this case, and then declaring
-                                    a low level grain. Then I found lower priority business processes and followed the same steps for those.
-                                </p>
-
-                                <div class="image main"><img src="images/BQ_detailed_matrix.png"/></div>
-
-                                <h3 style="text-align:center;">Source to Target Mapping</h3>
-                                <p>
-                                    I created a workbook that is used to show the mapping of schemas from the 
-                                    transactional database to other layers of the data warehouse project.
-                                    This was done for the following Sources and targets:
-                                    <ul>
-                                        <li>
-                                            Source to BQ Data Lake
-                                        </li>
-                                        <li>
-                                            BQ Data LAke to Staging
-                                        </li>
-                                        <li>
-                                            Data Lake to Data Warehouse
-                                        </li>
-                                        <li>
-                                            Data Warehouse to OBT
-                                        </li>
-                                    </ul>
-                                </p>
-                                <div class="image main"><img src="images/BQ_target_mapping.png"/></div>
-
-                                <h3 style="text-align:center;">Logical Model</h3>
-                                <p>
-                                    With all of the target mapping documents created and business processes
-                                    defined, we can move on to creating the logical model of the data warehouse tables.
-                                </p>
-                                <div class="image main"><img src="images/logical_diagram.png"/></div>
-
-                                <h3 style="text-align:center;">Physical Model Design</h3>
-                                <p>
-                                    With the logical model created, we can then indicate keys and 
-                                    add the datatypes of fields, then properly link shared dimensions
-                                    to their associated fact tables, and this leads to the creation
-                                    of our Physical models.
-                                </p>
-                                <h3 style="text-align:center;">Physical Model</h3>
-
-                                <div class="image main"><img src="images/phyisical_diagram.png"/></div>
-                                
-							</section>
-
-					</div>
+					</div>          
 
 				<!-- Footer -->
                 <footer id="footer">
