@@ -40,6 +40,12 @@
                             width: 100%;
                             height: auto;
                         }
+
+
+                        .main.special {
+                            padding-bottom: 100px;
+                        }
+
                     </style>
 				<!-- Main -->
 					<div id="main">
@@ -137,7 +143,7 @@
                                     </section>
 
                                     <!-- OLTP Tables Overview -->
-                                    <section id="oltp-tables-overview" class="main">
+                                    <section id="oltp-tables-overview" class="main special">
                                         <header class="major">
                                             <h4>OLTP Tables Overview</h4>
                                         </header>
@@ -157,7 +163,7 @@
                                     </section>
 
                                     <!-- OLTP System ER Diagram -->
-                                    <section id="oltp-er-diagram" class="main">
+                                    <section id="oltp-er-diagram" class="main special">
                                         <header class="major">
                                             <h4>OLTP System ER Diagram</h4>
                                         </header>
@@ -444,13 +450,17 @@
                                         <p>This phase is critical for ensuring that the data stored in the warehouse can be accessed quickly and reliably, providing the backbone for all subsequent data retrieval and analysis operations.</p>
                                         <p>In this project, the SSIS package was structured to manage data across several dimensions and fact tables effectively. This included:</p>
                                         <ul style="text-align:left;">
-                                            <li><strong>Clear Operations:</strong> Utilizing tasks such as 'clear_dim_customer' and 'clear_fact_sales' to prepare the environment by clearing existing data before loading new data, ensuring data freshness and integrity.</li>
-                                            <li><strong>Data Loading:</strong> Implementing data flow tasks that load data into dimension tables like 'dim_customer', 'dim_employee', and 'dim_product', and fact tables like 'fact_sales' and 'fact_inventory', which are crucial for detailed analytics and reporting.</li>
+                                            <li><strong>Clear Operations:</strong> Using tasks to clear existing data before loading new data. This includes tasks like 'clear_dim_customer' and 'clear_fact_sales' to ensure data freshness and integrity.</li>
+                                            <li><strong>Data Loading:</strong> Implementing data flow tasks to load data into dimension tables like 'dim_customer', 'dim_employee', and 'dim_product', and fact tables like 'fact_sales' and 'fact_inventory', which are crucial for detailed analytics and reporting.</li>
                                             <li><strong>Dependency Management:</strong> Managing dependencies carefully to ensure that data is processed in the correct order, which is essential for maintaining data accuracy across related dimensions and facts.</li>
+                                            <li><strong>Creating and Managing Keys:</strong> Creating surrogate keys for dimension and fact tables, and ensuring proper foreign key relationships between tables to maintain referential integrity.</li>
+                                            <li><strong>Handling Orphaned Records:</strong> Updating orphaned fact table rows to ensure no orphaned records exist, improving data consistency and reliability.</li>
+                                            <li><strong>Adding and Dropping Constraints:</strong> Ensuring constraints are properly managed to maintain data integrity throughout the ETL process, including the conditional addition and removal of primary and foreign key constraints.</li>
                                         </ul>
+                                    </section>
                                         <!-- Placeholder for SSIS Diagram -->
                                         <figure>
-                                            <img src="images/retail-ssis/dimensions_and_facts.png" alt="SSIS Dimensions and Fact Tables">
+                                            <img src="images/retail-ssis/physical_warehouse_package.png" alt="SSIS Dimensions and Fact Tables">
                                             <figcaption>Diagram of the SSIS Dimensions and Fact Tables implemented in the Data Warehouse Layer</figcaption>
                                         </figure>
                                     </section>
@@ -463,7 +473,7 @@
                                         <p>This section provides a detailed look at the implementation of specific dimension tables within the data warehouse, showcasing the steps taken to prepare and integrate these dimensions using SQL and SSIS. (Note: only showing the most interesting tables for brevity)</p>
                                         
                                         <!-- Dimension Table: dim_date -->
-                                        <section id="dim-date-implementation" class="main">
+                                        <section id="dim-date-implementation" class="main special">
                                             <header class="major">
                                                 <h5>Dimension Table: dim_date</h5>
                                             </header>
@@ -482,7 +492,7 @@
                                         </section>
                                         
                                         <!-- Dimension Table: dim_product -->
-                                        <section id="dim-product-implementation" class="main">
+                                        <section id="dim-product-implementation" class="main special">
                                             <header class="major">
                                                 <h5>Dimension Table: dim_product</h5>
                                             </header>
@@ -499,7 +509,652 @@
                                                 <figcaption>Sample data from the populated dim_product table</figcaption>
                                             </figure>
                                         </section>
-                                    </section>
+
+
+
+                                        <!-- Logging in SSIS Section -->
+                                        <section id="logging-ssis" class="main special">
+                                            <header class="major">
+                                                <h4>Logging in SSIS</h4>
+                                            </header>
+                                            <p>Effective logging is crucial for monitoring, debugging, and maintaining ETL processes in SSIS. Here are the steps taken to implement logging in the Retail Sales Data Warehouse project:</p>
+                                            
+                                            <h5>1. Understanding SSIS Logging Options</h5>
+                                            <p>SSIS provides built-in log providers that can log to text files, SQL Server tables, SQL Server Profiler, Windows Event Log, or XML files. Additionally, custom logging can be implemented using script tasks.</p>
+                                            
+                                            <h5>2. Enabling Built-in SSIS Logging</h5>
+                                            <p>To enable SSIS logging, right-click on the Control Flow canvas in your package and select 'Logging'. Configure the log providers, containers, and events you want to log.</p>
+                                            
+                                            <h5>3. Choosing Logging Events</h5>
+                                            <p>Common events to log include OnError, OnWarning, OnInformation, OnPreExecute, OnPostExecute, and OnProgress. These events provide insights into package execution and help identify issues.</p>
+                                            
+                                            <h5>4. Configuring Log Provider</h5>
+
+                                            <p>Add a Connection Manager to your package pointing to your logging database. In the Logging configuration window, add a new log provider for SQL Server, select the Connection Manager.</p>
+                                            
+                                            <p>Enable logging in your SSIS package and the next time the package is ran, the default logging table should be in the database you selected under System Tables > dbo.sysssislog</p>
+
+                                            <h5>6. Custom Logging with Script Tasks</h5>
+                                            <p>For more granular or custom logging, use Script Tasks to write custom C# or VB.NET code to log specific events or data to a SQL table or a file.</p>
+                                            
+                                            <h5>7. Monitoring and Maintenance</h5>
+                                            <p>Regularly review logs to identify and address issues. Set up alerts or notifications for critical errors or warnings.</p>
+
+                                            <figure>
+                                                <img src="images/retail-ssis/sample_log_data.png" alt="Data in dim_product">
+                                                <figcaption>Sample log results</figcaption>
+                                            </figure>
+                                        </section>
+
+                                        <!-- Monitoring and Alerting Section -->
+                                        <section id="monitoring-alerting" class="main special">
+                                            <header class="major">
+                                                <h4>Monitoring and Alerting</h4>
+                                            </header>
+                                            <p>Monitoring and alerting are crucial for maintaining the health and performance of your ETL processes. Setting up effective monitoring and alerting ensures that you are promptly informed of any critical errors or warnings, allowing you to address issues proactively and minimize downtime.</p>
+                                            
+                                            <h5>1. Using SQL Server Agent Alerts</h5>
+                                            <p>SQL Server Agent allows you to create alerts and configure email notifications for specific events or conditions. This method is commonly used for database-related alerts, including those generated by SSIS packages.</p>
+                                            
+                                            <h6>Steps to Set Up SQL Server Agent Alerts:</h6>
+                                            <h5>1.1 Create an Operator</h5>
+                                            <ul>
+                                                <li>Open SQL Server Management Studio (SSMS).</li>
+                                                <li>Expand the <strong>SQL Server Agent</strong> node.</li>
+                                                <li>Right-click <strong>Operators</strong> and select <strong>New Operator</strong>.</li>
+                                                <li>Enter the operator's name and email address. This operator will receive the alert notifications.</li>
+                                            </ul>
+                                            
+                                            <h5>1.2 Configure Database Mail</h5>
+                                            <ul>
+                                                <li>Expand the <strong>Management</strong> node.</li>
+                                                <li>Right-click <strong>Database Mail</strong> and select <strong>Configure Database Mail</strong>.</li>
+                                                <li>Follow the wizard to set up a new Database Mail profile, including SMTP server details.</li>
+                                            </ul>
+                                            
+                                            <h5>1.3 Create an Alert</h5>
+                                            <ul>
+                                                <li>Under the <strong>SQL Server Agent</strong> node, right-click <strong>Alerts</strong> and select <strong>New Alert</strong>.</li>
+                                                <li>Configure the alert to respond to specific error conditions or performance thresholds. For example:
+                                                    <ul>
+                                                        <li><strong>Type</strong>: SQL Server event alert.</li>
+                                                        <li><strong>Database name</strong>: Select the relevant database.</li>
+                                                        <li><strong>Error number</strong>: Specify the error number you want to monitor (e.g., 50000 for custom errors).</li>
+                                                    </ul>
+                                                </li>
+                                                <li>Under the <strong>Response</strong> tab, configure the alert to notify the operator created earlier.</li>
+                                            </ul>
+                                            
+                                            <h5>1.4 Create a Job to Run the SSIS Package</h5>
+                                            <ul>
+                                                <li>Under the <strong>SQL Server Agent</strong> node, right-click <strong>Jobs</strong> and select <strong>New Job</strong>.</li>
+                                                <li>Add a new step to the job to execute the SSIS package.</li>
+                                                <li>Under the <strong>Notifications</strong> tab, configure the job to notify the operator on job failure.</li>
+                                            </ul>
+
+                                            <h5>2. Using Event Handlers in SSIS</h5>
+                                            <p>You can use SSIS event handlers to send email notifications directly from within an SSIS package when specific events occur, such as errors.</p>
+
+                                            <h6>Steps to Set Up Event Handlers:</h6>
+                                            <h5>2.1 Open the SSIS Package in SSDT</h5>
+                                            <ul>
+                                                <li>Open your SSIS package in SQL Server Data Tools (SSDT).</li>
+                                            </ul>
+
+                                            <h5>2.2 Add an Event Handler</h5>
+                                            <ul>
+                                                <li>Click on the <strong>Event Handlers</strong> tab.</li>
+                                                <li>From the <strong>Executable</strong> dropdown, select the package or task you want to monitor.</li>
+                                                <li>From the <strong>Event Handler</strong> dropdown, select <code>OnError</code> or another event you want to monitor.</li>
+                                                <li>Click <strong>Add</strong> to create the event handler.</li>
+                                            </ul>
+
+                                            <h5>2.3 Add a Send Mail Task</h5>
+                                            <ul>
+                                                <li>Drag a <strong>Send Mail Task</strong> onto the Event Handler design surface.</li>
+                                                <li>Double-click the <strong>Send Mail Task</strong> to configure it:
+                                                    <ul>
+                                                        <li><strong>SMTP Connection</strong>: Set up a connection to your SMTP server.</li>
+                                                        <li><strong>From</strong>: Enter the sender's email address.</li>
+                                                        <li><strong>To</strong>: Enter the recipient's email address.</li>
+                                                        <li><strong>Subject</strong>: Enter a subject line (e.g., "SSIS Package Error").</li>
+                                                        <li><strong>Message Source</strong>: Enter the body of the email. You can use expressions to include dynamic content such as error messages.</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+
+                                            <h5>2.4 Configure the Send Mail Task with Expressions (Optional)</h5>
+                                            <ul>
+                                                <li>You can use SSIS expressions to include dynamic content in the email body, such as the error description.</li>
+                                                <li>In the <strong>Send Mail Task</strong>, click on the <strong>Expressions</strong> property.</li>
+                                                <li>Add an expression for the <strong>MessageSource</strong> property to include the system variables like <code>System::ErrorDescription</code>.</li>
+                                            </ul>
+                                        </section>
+
+
+                                        <!-- Performance Considerations Section -->
+                                        <section id="performance-considerations" class="main special">
+                                            <header class="major">
+                                                <h4>Performance Considerations</h4>
+                                            </header>
+                                            <p>Optimizing performance is crucial for the efficient operation of a data warehouse. This section covers key performance considerations, including indexing strategies and avoiding asynchronous transformations in SSIS.</p>
+                                            
+                                            <h5>Indexes</h5>
+                                            <p>Indexes improve query performance by allowing quick data retrieval. Key types include:</p>
+                                            <ul style="text-align:left;">
+                                                <li><strong>Clustered Indexes:</strong> Create on primary key columns or frequently used columns in range queries.</li>
+                                                <li><strong>Non-Clustered Indexes:</strong> Use on columns frequently used in joins, filters, and aggregations.</li>
+                                                <li><strong>Covering Indexes:</strong> Include all columns required by a query to reduce table access.</li>
+                                                <li><strong>Index Maintenance:</strong> Regularly rebuild or reorganize fragmented indexes.</li>
+                                            </ul>
+
+                                            <h5>Avoiding Asynchronous Transformations</h5>
+                                            <p>Asynchronous transformations can be performance bottlenecks. Avoid them by using SQL commands:</p>
+                                            <ul style="text-align:left;">
+                                                <li><strong>Sort Transformation:</strong> Use <code>ORDER BY</code> clause in SQL queries.</li>
+                                                <li><strong>Aggregate Transformation:</strong> Perform aggregations in the source query using SQL functions.</li>
+                                                <li><strong>Join Transformations:</strong> Use SQL joins in the source query to retrieve joined data directly.</li>
+                                            </ul>
+
+                                            <h5>Buffer Management</h5>
+                                            <p>Efficient buffer management in SSIS can improve data flow performance. Key practices include:</p>
+                                            <ul style="text-align:left;">
+                                                <li><strong>Buffer Size:</strong> Increase the default buffer size by adjusting <code>DefaultBufferMaxRows</code> and <code>DefaultBufferSize</code>.</li>
+                                                <li><strong>Data Flow Optimization:</strong> Minimize data type conversions and unnecessary transformations.</li>
+                                            </ul>
+
+                                            <h5>Additional Considerations</h5>
+                                            <ul style="text-align:left;">
+                                                <li><strong>Partitioning:</strong> Partition large tables by date, range, or hash.</li>
+                                                <li><strong>Parallel Processing:</strong> Enable parallel execution of SSIS packages and tasks.</li>
+                                                <li><strong>Avoid Row-by-Row Processing:</strong> Use set-based operations in SQL.</li>
+                                                <li><strong>Monitor and Tune Performance:</strong> Use tools like SQL Server Profiler and Performance Monitor.</li>
+                                            </ul>
+                                        </section>
+
+                                        <!-- Testing Section -->
+                                        <section id="testing" class="main special">
+                                            <header class="major">
+                                                <h4>Testing</h4>
+                                            </header>
+                                            <p>Testing is a critical phase in the data warehouse development lifecycle. It ensures the accuracy, integrity, and performance of the data warehouse and ETL processes. This section outlines various testing strategies and methodologies employed to validate the Retail Sales Data Warehouse project using SSIS and SQL Server.</p>
+
+                                            <h5>1. Unit Testing</h5>
+                                            <p>Unit testing involves testing individual components of the ETL process to ensure they function correctly. In the context of SSIS and SQL Server:</p>
+                                            <ul>
+                                                <li><strong>SSIS Packages:</strong> Test each SSIS package individually by running the package and verifying the output data at each stage. Use data viewers to inspect data as it flows through the data pipeline.</li>
+                                                <li><strong>Stored Procedures and Functions:</strong> Use tSQLt, a unit testing framework for T-SQL, to write and execute tests for stored procedures and functions used in ETL processes.</li>
+                                                <li><strong>Data Validity:</strong> Create test cases to validate that the data loaded into staging tables matches the source data in terms of structure and content. Use SQL queries to compare source and destination tables.</li>
+                                            </ul>
+
+                                            <h5>2. Integration Testing</h5>
+                                            <p>Integration testing ensures that different components of the ETL process work together as expected. This involves testing the entire ETL workflow from source systems to the data warehouse using SSIS:</p>
+                                            <ul>
+                                                <li><strong>End-to-End Data Flow:</strong> Execute the entire SSIS package workflow and verify that data is correctly extracted, transformed, and loaded into the data warehouse. Use control flow tasks to manage the sequence of operations.</li>
+                                                <li><strong>Data Integrity:</strong> Use SQL Server Data Tools (SSDT) to validate data integrity throughout the ETL process. Ensure there are no data loss or corruption by comparing row counts and checksums between source and destination.</li>
+                                                <li><strong>Data Consistency:</strong> Check for consistency across different layers of the data warehouse. Use SSIS data flow tasks to perform row-by-row comparisons between staging and final tables.</li>
+                                            </ul>
+
+                                            <h5>3. Performance Testing</h5>
+                                            <p>Performance testing evaluates the efficiency and scalability of the ETL processes and the data warehouse. This includes:</p>
+                                            <ul>
+                                                <li><strong>Load Testing:</strong> Simulate high data volumes by running SSIS packages with large datasets. Measure the time taken for ETL processes and ensure they complete within acceptable timeframes. Use SQL Server Profiler to monitor performance.</li>
+                                                <li><strong>Query Performance:</strong> Test the performance of queries run against the data warehouse. Use execution plans to identify and optimize slow-running queries.</li>
+                                                <li><strong>Resource Utilization:</strong> Monitor CPU, memory, and disk usage during ETL and query operations using Performance Monitor (PerfMon) to identify potential bottlenecks.</li>
+                                            </ul>
+
+                                            <h5>4. User Acceptance Testing (UAT)</h5>
+                                            <p>User Acceptance Testing (UAT) involves end-users validating the data warehouse to ensure it meets their requirements and expectations:</p>
+                                            <ul>
+                                                <li><strong>Functional Validation:</strong> Ensure that the data warehouse provides the required reports and data access as specified by the business users. Use SQL Server Reporting Services (SSRS) to generate reports and validate data accuracy.</li>
+                                                <li><strong>Usability Testing:</strong> Validate that the data warehouse and BI tools are user-friendly and intuitive for end-users. Gather feedback from users on the ease of use and functionality.</li>
+                                                <li><strong>Feedback Loop:</strong> Collect feedback from users and make necessary adjustments to the data warehouse and ETL processes based on their input. Implement changes in SSIS packages and re-test as needed.</li>
+                                            </ul>
+
+                                            <h5>5. Data Quality Testing</h5>
+                                            <p>Data quality testing ensures that the data in the data warehouse is accurate, complete, and reliable:</p>
+                                            <ul>
+                                                <li><strong>Data Accuracy:</strong> Verify that the data loaded into the data warehouse matches the source data and is free from errors. Use SQL queries to compare sample data sets from the source and the warehouse.</li>
+                                                <li><strong>Data Completeness:</strong> Ensure that all required data has been loaded into the data warehouse, with no missing records or fields. Use row counts and integrity constraints to check for completeness.</li>
+                                                <li><strong>Data Consistency:</strong> Check for consistency in data formats, values, and relationships across different tables and layers. Use SSIS data flow transformations to standardize and validate data consistency.</li>
+                                            </ul>
+
+                                            <h5>6. Regression Testing</h5>
+                                            <p>Regression testing ensures that changes or updates to the ETL processes do not introduce new errors or negatively impact existing functionality:</p>
+                                            <ul>
+                                                <li><strong>Test Automation:</strong> Use automated testing tools like tSQLt for SQL Server to run regression tests on ETL processes and data warehouse components. Integrate these tests into your continuous integration pipeline.</li>
+                                                <li><strong>Version Control:</strong> Maintain version control for ETL scripts and packages using tools like Git to track changes and facilitate rollback if necessary.</li>
+                                                <li><strong>Comprehensive Test Cases:</strong> Develop and maintain comprehensive test cases to cover all aspects of the ETL processes and data warehouse functionality. Regularly update test cases to reflect changes in business requirements.</li>
+                                            </ul>
+
+                                            <h5>7. Tools and Frameworks</h5>
+                                            <p>Various tools and frameworks can be used to facilitate testing in SQL Server and SSIS:</p>
+                                            <ul>
+                                                <li><strong>tSQLt:</strong> A unit testing framework for T-SQL that allows you to write and execute tests for SQL Server databases.</li>
+                                                <li><strong>Visual Studio Test Projects:</strong> Use Visual Studio to create and manage test projects for SSIS packages and SQL Server objects.</li>
+                                                <li><strong>SQL Server Data Tools (SSDT):</strong> Provides features for developing, testing, and deploying SQL Server databases and SSIS packages.</li>
+                                            </ul>
+                                        </section>
+
+                                        <!-- SSAS Section -->
+                                        <section id="ssas" class="main special">
+                                            <header class="major">
+                                                <h4>SQL Server Analysis Services (SSAS)</h4>
+                                            </header>
+                                            <p>SQL Server Analysis Services (SSAS) is used to build and deploy OLAP cubes and tabular models, which enable advanced data analysis and business intelligence. This section outlines the steps taken to set up and use SSAS in the Retail Sales Data Warehouse project.</p>
+                                            
+                                            <h5>1. Installation and Setup</h5>
+                                            <p>Ensure that SQL Server Data Tools (SSDT) is installed for developing SSAS projects. SSDT can be downloaded from the Microsoft Visual Studio website.</p>
+                                            
+                                            <h5>2. Creating a New SSAS Project</h5>
+                                            <p>In Visual Studio, create a new Analysis Services project. Choose between a Multidimensional and Data Mining Project or a Tabular Project based on the requirements. For beginners, the tabular model is recommended.</p>
+                                            
+                                            <h5>3. Connecting to the Data Source</h5>
+                                            <p>Use the Data Source Wizard in Solution Explorer to connect to the SQL Server database that contains the data warehouse.</p>
+                                            
+                                            <h5>4. Creating a Data Source View</h5>
+                                            <p>Select the necessary tables and views from the database to create a Data Source View using the Data Source View Wizard.</p>
+                                            
+                                            <h5>5. Designing the Data Model</h5>
+                                            <p>Design the data model by dragging and dropping tables and columns. Create relationships, calculated columns, and measures as needed.</p>
+                                            
+                                            <h5>6. Deploying the SSAS Project</h5>
+                                            <p>Configure the deployment settings and deploy the project to the SSAS server.</p>
+                                            
+                                            <h5>7. Processing the Model</h5>
+                                            <p>Process the model to load data into it by right-clicking on the model or cube and selecting "Process". Follow the prompts to complete the process.</p>
+                                            
+                                            <h5>8. Verifying and Exploring the Model</h5>
+                                            <p>Use SQL Server Management Studio (SSMS) to connect to the SSAS server and browse the deployed model or cube. Write MDX or DAX queries to explore the data.</p>
+                                        </section>
+
+                                        <!-- Deployment Section -->
+                                        <section id="deployment" class="main special">
+                                            <header class="major">
+                                                <h4>Deployment of SSIS Packages</h4>
+                                            </header>
+                                            <p>Deployment is a crucial phase in the ETL lifecycle, ensuring that your SSIS packages are properly transferred from the development environment to the production environment. This section covers the different approaches to deploying SSIS packages, the steps involved, and the benefits of proper deployment.</p>
+
+                                            <h5>1. Deployment Approaches</h5>
+                                            <p>There are several approaches to deploying SSIS packages, each with its own advantages and use cases:</p>
+                                            <ul>
+                                                <li><strong>Project Deployment Model:</strong> This is the recommended approach for SQL Server 2012 and later. It allows you to deploy entire SSIS projects, including all packages and parameters, to the SSISDB catalog on the SQL Server instance.</li>
+                                                <li><strong>Package Deployment Model:</strong> This approach is suitable for older versions of SQL Server. It allows you to deploy individual packages to the file system or to MSDB, a system database on SQL Server.</li>
+                                                <li><strong>File System Deployment:</strong> Deploy packages as files in a directory accessible by the SSIS runtime engine. This method is straightforward but lacks centralized management features.</li>
+                                                <li><strong>MSDB Deployment:</strong> Store SSIS packages in the MSDB database on SQL Server. This allows for centralized management but requires more manual configuration compared to the project deployment model.</li>
+                                            </ul>
+
+                                            <h5>2. Steps for Deploying SSIS Packages</h5>
+                                            <p>Here are the steps involved in deploying SSIS packages using the Project Deployment Model:</p>
+                                            <ul>
+                                                <li><strong>Build the SSIS Project:</strong>
+                                                    <ul>
+                                                        <li>In Visual Studio (SSDT), right-click on the SSIS project in Solution Explorer.</li>
+                                                        <li>Select "Build" to compile the project and generate the .ispac deployment file.</li>
+                                                    </ul>
+                                                </li>
+                                                <li><strong>Deploy the SSIS Project:</strong>
+                                                    <ul>
+                                                        <li>Right-click on the project and select "Deploy" to open the Integration Services Deployment Wizard.</li>
+                                                        <li>Follow the wizard steps to select the .ispac file, choose the target SQL Server instance, and specify the SSISDB catalog as the destination.</li>
+                                                        <li>Review the summary and click "Deploy" to deploy the project to the SSISDB catalog.</li>
+                                                    </ul>
+                                                </li>
+                                                <li><strong>Configure Environments and Parameters:</strong>
+                                                    <ul>
+                                                        <li>After deployment, use SQL Server Management Studio (SSMS) to configure environments and parameters for your SSIS packages.</li>
+                                                        <li>Environments allow you to manage configurations and variables for different runtime scenarios (e.g., development, testing, production).</li>
+                                                        <li>Set values for parameters to control package execution without modifying the packages themselves.</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+
+                                            <h5>3. Benefits of Proper Deployment</h5>
+                                            <p>Proper deployment of SSIS packages offers several benefits:</p>
+                                            <ul>
+                                                <li><strong>Centralized Management:</strong> The SSISDB catalog provides a centralized location for managing, monitoring, and executing SSIS packages. This simplifies administration and enhances control over your ETL processes.</li>
+                                                <li><strong>Version Control:</strong> By using the project deployment model, you can maintain version history of your SSIS packages, making it easier to track changes and revert to previous versions if necessary.</li>
+                                                <li><strong>Security:</strong> The SSISDB catalog allows for better security management, including role-based access control and encryption of sensitive data.</li>
+                                                <li><strong>Configurability:</strong> Environments and parameters provide flexibility in managing different configurations for various runtime scenarios, ensuring that packages run correctly in different environments without manual modifications.</li>
+                                                <li><strong>Monitoring and Logging:</strong> SSISDB offers built-in monitoring and logging capabilities, allowing you to track package execution history, performance, and errors. This aids in troubleshooting and optimizing ETL processes.</li>
+                                            </ul>
+
+                                            <h5>4. Best Practices for Deployment</h5>
+                                            <p>To ensure a smooth deployment process and reliable operation of your SSIS packages, consider the following best practices:</p>
+                                            <ul>
+                                                <li><strong>Use Integrated Security:</strong> Whenever possible, use Windows Authentication for connecting to SQL Server to enhance security and simplify credential management.</li>
+                                                <li><strong>Parameterize Connections:</strong> Use project parameters to manage connection strings and other configuration settings, allowing for easier environment-specific configurations.</li>
+                                                <li><strong>Validate Packages Before Deployment:</strong> Thoroughly test and validate your SSIS packages in a staging or testing environment to ensure they function correctly before deploying them to production.</li>
+                                                <li><strong>Automate Deployments:</strong> Use automated deployment tools and scripts to streamline the deployment process and reduce the risk of manual errors.</li>
+                                                <li><strong>Monitor Execution:</strong> Regularly monitor the execution of your SSIS packages using SSMS and SSISDB reports to detect and address any issues promptly.</li>
+                                            </ul>
+                                        </section>
+
+                                        <!-- SSAS Section -->
+                                        <section id="ssas" class="main special">
+                                            <header class="major">
+                                                <h4>SQL Server Analysis Services (SSAS)</h4>
+                                            </header>
+                                            <p>SQL Server Analysis Services (SSAS) is used to build and deploy OLAP cubes and tabular models, which enable advanced data analysis and business intelligence. This section outlines the explicit steps to set up and use SSAS in the Retail Sales Data Warehouse project.</p>
+                                            
+                                            <h5>1. Creating a New SSAS Project</h5>
+                                            <p>Start by creating a new SSAS project in Visual Studio (SSDT):</p>
+                                            <ul>
+                                                <li>Open Visual Studio (SSDT).</li>
+                                                <li>Click on <strong>File</strong> > <strong>New</strong> > <strong>Project</strong>.</li>
+                                                <li>Select <strong>Analysis Services Tabular Project</strong> (recommended for beginners) or <strong>Analysis Services Multidimensional and Data Mining Project</strong>.</li>
+                                                <li>Enter a name for your project and click <strong>OK</strong>.</li>
+                                            </ul>
+
+                                            <h5>2. Connecting to Your Data Source</h5>
+                                            <p>Connect your SSAS project to your data source:</p>
+                                            <ul>
+                                                <li>In Solution Explorer, right-click on <strong>Data Sources</strong> and select <strong>New Data Source</strong>.</li>
+                                                <li>Follow the Data Source Wizard:</li>
+                                                <ul>
+                                                    <li>Select <strong>Create a data source based on an existing or new connection</strong>.</li>
+                                                    <li>Click <strong>New</strong> to create a new connection, enter the server name and select the database (your data warehouse), then click <strong>OK</strong>.</li>
+                                                    <li>Click <strong>Next</strong> and then <strong>Finish</strong> to complete the wizard.</li>
+                                                </ul>
+                                            </ul>
+
+                                            <h5>3. Creating a Data Source View</h5>
+                                            <p>Create a Data Source View to define the tables and views to be included in your data model:</p>
+                                            <ul>
+                                                <li>Right-click on <strong>Data Source Views</strong> in Solution Explorer and select <strong>New Data Source View</strong>.</li>
+                                                <li>Follow the Data Source View Wizard:</li>
+                                                <ul>
+                                                    <li>Select the data source you created in the previous step and click <strong>Next</strong>.</li>
+                                                    <li>Select the tables and views you want to include in your data model and click the arrow button to add them, then click <strong>Next</strong>.</li>
+                                                    <li>Review the diagram and click <strong>Finish</strong>.</li>
+                                                </ul>
+                                            </ul>
+
+                                            <h5>4. Designing the Data Model</h5>
+                                            <p>Design your data model by creating relationships, calculated columns, and measures:</p>
+                                            <ul>
+                                                <li><strong>For Tabular Models:</strong>
+                                                    <ul>
+                                                        <li>Double-click on the <strong>Model.bim</strong> file in Solution Explorer to open the designer.</li>
+                                                        <li>Drag and drop tables from the Data Source View to the model designer.</li>
+                                                        <li>Define relationships between tables by dragging and dropping columns to create joins.</li>
+                                                        <li>Create calculated columns and measures as needed by right-clicking on a table and selecting <strong>New Column</strong> or <strong>New Measure</strong>.</li>
+                                                    </ul>
+                                                </li>
+                                                <li><strong>For Multidimensional Models:</strong>
+                                                    <ul>
+                                                        <li>Right-click on <strong>Cubes</strong> in Solution Explorer and select <strong>New Cube</strong>.</li>
+                                                        <li>Follow the Cube Wizard to select the measures and dimensions for your cube, and click <strong>Next</strong>.</li>
+                                                        <li>Review the cube structure and click <strong>Finish</strong>.</li>
+                                                        <li>Define dimensions and hierarchies as needed by right-clicking on <strong>Dimensions</strong> and selecting <strong>New Dimension</strong>.</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+
+                                            <h5>5. Deploying the SSAS Project</h5>
+                                            <p>Deploy your SSAS project to the SSAS server:</p>
+                                            <ul>
+                                                <li>Right-click on your project in Solution Explorer and select <strong>Properties</strong>.</li>
+                                                <li>In the <strong>Configuration Properties</strong> > <strong>Deployment</strong> section, configure the deployment settings:</li>
+                                                <ul>
+                                                    <li>Set the <strong>Server</strong> property to the name of your SSAS server.</li>
+                                                    <li>Set the <strong>Database</strong> property to the name you want for your deployed model or cube.</li>
+                                                </ul>
+                                                <li>Click <strong>OK</strong> to save the settings.</li>
+                                                <li>Right-click on your project and select <strong>Deploy</strong> to deploy the project to the SSAS server.</li>
+                                            </ul>
+
+                                            <h5>6. Processing the Model</h5>
+                                            <p>Process your SSAS model to load data into it:</p>
+                                            <ul>
+                                                <li>After deployment, right-click on the model (for tabular) or the cube (for multidimensional) in Solution Explorer and select <strong>Process</strong>.</li>
+                                                <li>In the Process dialog, click <strong>Run</strong> to start the processing. This will load data into the model or cube.</li>
+                                                <li>Monitor the progress and ensure there are no errors. Once processing is complete, click <strong>Close</strong>.</li>
+                                            </ul>
+
+                                            <h5>7. Verifying and Exploring the Model</h5>
+                                            <p>Verify and explore your SSAS model using SQL Server Management Studio (SSMS):</p>
+                                            <ul>
+                                                <li>Open SQL Server Management Studio (SSMS).</li>
+                                                <li>Connect to your SSAS server.</li>
+                                                <li>Expand the <strong>Databases</strong> node to find your deployed model or cube.</li>
+                                                <li>Right-click on the model or cube and select <strong>New Query</strong> > <strong>MDX</strong> (for multidimensional) or <strong>DAX</strong> (for tabular).</li>
+                                                <li>Write and execute queries to explore the data and verify that the model is functioning as expected.</li>
+                                            </ul>
+                                        </section>
+
+                                        <!-- SSRS Section -->
+                                        <section id="ssrs" class="main special">
+                                            <header class="major">
+                                                <h4>SQL Server Reporting Services (SSRS)</h4>
+                                            </header>
+                                            <p>SQL Server Reporting Services (SSRS) is a server-based report generating software system from Microsoft. It enables the creation, deployment, and management of reports. This section outlines the explicit steps to set up and use SSRS in the Retail Sales Data Warehouse project.</p>
+                                            
+                                            <h5>1. Creating a New SSRS Project</h5>
+                                            <p>Start by creating a new SSRS project in Visual Studio (SSDT):</p>
+                                            <ul>
+                                                <li>Open Visual Studio (SSDT).</li>
+                                                <li>Click on <strong>File</strong> > <strong>New</strong> > <strong>Project</strong>.</li>
+                                                <li>Select <strong>Report Server Project</strong> under the Business Intelligence templates.</li>
+                                                <li>Enter a name for your project and click <strong>OK</strong>.</li>
+                                            </ul>
+
+                                            <h5>2. Adding a Data Source</h5>
+                                            <p>Configure a data source for your reports:</p>
+                                            <ul>
+                                                <li>In Solution Explorer, right-click on <strong>Shared Data Sources</strong> and select <strong>Add New Data Source</strong>.</li>
+                                                <li>Name the data source (e.g., <strong>SalesDataSource</strong>).</li>
+                                                <li>Click on <strong>Edit</strong> to configure the connection string:</li>
+                                                <ul>
+                                                    <li>Select your SQL Server instance.</li>
+                                                    <li>Select the database that contains your data warehouse.</li>
+                                                    <li>Click <strong>OK</strong> to save the connection string.</li>
+                                                </ul>
+                                                <li>Click <strong>OK</strong> to add the data source.</li>
+                                            </ul>
+
+                                            <h5>3. Creating a Shared Dataset</h5>
+                                            <p>Create a shared dataset to define the data queries for your reports:</p>
+                                            <ul>
+                                                <li>Right-click on <strong>Shared Datasets</strong> and select <strong>Add New Dataset</strong>.</li>
+                                                <li>Name the dataset (e.g., <strong>SalesDataset</strong>).</li>
+                                                <li>Select the shared data source you created earlier.</li>
+                                                <li>Write a query to retrieve the data for your reports:</li>
+                                                <ul>
+                                                    <li>Click on <strong>Query Designer</strong> to build the query graphically, or</li>
+                                                    <li>Enter the SQL query directly in the <strong>Query</strong> box.</li>
+                                                </ul>
+                                                <li>Click <strong>OK</strong> to save the dataset.</li>
+                                            </ul>
+
+                                            <h5>4. Creating a New Report</h5>
+                                            <p>Create a new report to visualize your data:</p>
+                                            <ul>
+                                                <li>Right-click on <strong>Reports</strong> in Solution Explorer and select <strong>Add New Report</strong>.</li>
+                                                <li>Follow the Report Wizard:</li>
+                                                <ul>
+                                                    <li>Select the shared dataset you created earlier and click <strong>Next</strong>.</li>
+                                                    <li>Choose the report type (e.g., Tabular or Matrix) and click <strong>Next</strong>.</li>
+                                                    <li>Design the report layout by selecting fields and arranging them as needed. Click <strong>Next</strong>.</li>
+                                                    <li>Choose a style for your report and click <strong>Next</strong>.</li>
+                                                    <li>Enter a name for the report and click <strong>Finish</strong>.</li>
+                                                </ul>
+                                            </ul>
+
+                                            <h5>5. Designing the Report</h5>
+                                            <p>Design the report layout and appearance:</p>
+                                            <ul>
+                                                <li>Use the Report Designer to customize the layout of your report. You can drag and drop fields, add charts, tables, and other visual elements.</li>
+                                                <li>Format the report by setting properties for fonts, colors, and borders.</li>
+                                                <li>Add interactive features like drill-downs, parameters, and sorting options to enhance report usability.</li>
+                                            </ul>
+
+                                            <h5>6. Deploying the Report</h5>
+                                            <p>Deploy your report to the SSRS server:</p>
+                                            <ul>
+                                                <li>Right-click on the project in Solution Explorer and select <strong>Properties</strong>.</li>
+                                                <li>In the <strong>TargetServerURL</strong> field, enter the URL of your SSRS server (e.g., <code>http://yourserver/ReportServer</code>).</li>
+                                                <li>Click <strong>OK</strong> to save the settings.</li>
+                                                <li>Right-click on the project and select <strong>Deploy</strong> to publish the reports to the SSRS server.</li>
+                                            </ul>
+
+                                            <h5>7. Viewing the Report</h5>
+                                            <p>View and verify your deployed report:</p>
+                                            <ul>
+                                                <li>Open a web browser and navigate to your SSRS web portal (e.g., <code>http://yourserver/Reports</code>).</li>
+                                                <li>Find and open your deployed report.</li>
+                                                <li>Verify that the report displays correctly and the data is accurate.</li>
+                                            </ul>
+
+                                            <h5>8. Managing Reports</h5>
+                                            <p>Manage your reports using the SSRS web portal:</p>
+                                            <ul>
+                                                <li>Set up subscriptions to automate report delivery via email or file share.</li>
+                                                <li>Configure report caching and snapshots to improve performance.</li>
+                                                <li>Manage security settings to control access to reports and data sources.</li>
+                                            </ul>
+                                        </section>
+
+                                        
+                                        <!-- Issues Section -->
+                                        <section id="issues" class="main special">
+                                            <header class="major">
+                                                <h4>Issues and Resolutions</h4>
+                                            </header>
+                                            <p>Throughout the implementation of the data warehouse layer, several challenges were encountered. Addressing these issues was critical to ensure data integrity and the smooth functioning of the ETL processes.</p>
+                                            
+                                            <h5>Issue: Date Format Inconsistency</h5>
+                                            <p>One significant issue encountered was the inconsistency in date formats between the <code>dim_date</code> table and the dates in the dimension and fact tables. The <code>full_date</code> column in the <code>dim_date</code> table was in the format <code>YYYY-MM-DD</code>, while the dates in the other tables included time components, such as <code>YYYY-MM-DD HH:MM:SS.0000000</code>.</p>
+                                            
+                                            <p>This discrepancy caused problems when establishing foreign key relationships, as the date formats did not match. Maintaining referential integrity between the <code>dim_date</code> table and other tables was crucial after moving data from the staging layer to the dimension and fact tables.</p>
+                                            
+                                            <h5>Solution: Adding Truncated Date Columns</h5>
+                                            <p>To resolve this issue, truncated date columns were added to the relevant tables. These columns contained only the date portion, which allowed for consistent and accurate joins with the <code>full_date</code> column in the <code>dim_date</code> table.</p>
+                                            
+                                            <p>For example, the original date format in the fact tables was:</p>
+                                            <pre><code>2006-01-15 00:00:00.0000000</code></pre>
+                                            
+                                            <p>After truncation, the format became:</p>
+                                            <pre><code>2006-01-15</code></pre>
+                                            
+                                            <p>This change ensured that referential integrity was maintained when the staging layer data was moved to the dimension and fact tables.</p>
+                                            
+                                            <figure>
+
+                                            
+                                            <p>The steps taken to resolve this issue included:</p>
+                                            <ul style="text-align:left;">
+                                                <li><strong>Step 1:</strong> Retrieve the list of columns that needed truncation using the 'get column list' task.</li>
+                                                <li><strong>Step 2:</strong> Loop through each column in the 'Foreach Loop Container' to add truncated date columns to the tables using the 'add truncated date columns' task.</li>
+                                                <li><strong>Step 3:</strong> Set the values of the truncated date columns based on the original date columns using the 'set truncated date columns' task.</li>
+                                            </ul>
+
+                                            <h5>Issue: Orphaned Product Rows</h5>
+                                            <p>Another significant issue was the presence of orphaned rows in the fact tables where <code>product_id</code> values did not match any entry in the <code>dim_product</code> table. This resulted in <code>product_fk</code> columns in the fact tables being null for these rows, which could lead to referential integrity issues.</p>
+
+                                            <h5>Solution: Adding an Unknown Product Row</h5>
+                                            <p>To resolve this, an unknown product row was added to the <code>dim_product</code> table with an ID of <code>-1</code>. All orphaned product rows in the fact tables were then updated to reference this unknown product, ensuring that the <code>product_fk</code> columns would not be null.</p>
+                                            
+                                            <p>This approach allowed for maintaining referential integrity even when the original product IDs were missing from the <code>dim_product</code> table.</p>
+                                            
+
+
+                                            <p>The steps taken to resolve this issue included:</p>
+                                            <ul style="text-align:left;">
+                                                <li><strong>Step 1:</strong> Add an unknown product row to the <code>dim_product</code> table with an ID of <code>-1</code>.</li>
+                                                <li><strong>Step 2:</strong> Update orphaned product rows in the fact tables to reference this unknown product, ensuring no null values in the <code>product_fk</code> columns.</li>
+                                            </ul>
+                                        </section>
+
+
+
+
+
+
+
+
+                                        <!-- Issues and Resolutions -->
+                                        <section id="issues-resolutions" class="main special">
+                                            <header class="major">
+                                                <h4>Issues and Resolutions</h4>
+                                            </header>
+                                            
+                                            <!-- Issue 1: Date Format Inconsistencies -->
+                                            <div class="issue">
+                                                <h5>Issue 1: Date Format Inconsistencies</h5>
+                                                <p><strong>Description:</strong> During the integration process, it was discovered that the <code>full_date</code> column in the <code>dim_date</code> table had a different format compared to the date columns in the dimension and fact tables. The <code>dim_date</code> table used the format <code>YYYY-MM-DD</code>, while the other tables had dates in the format <code>YYYY-MM-DD HH:MM:SS.SSSSSSS</code>.</p>
+                                                <p><strong>Solution:</strong> To address this inconsistency and maintain referential integrity, we added truncated date columns to the dimension and fact tables. This involved creating new columns with the truncated dates and populating them with the formatted values.</p>
+                                                <p><strong>Steps Taken:</strong></p>
+                                                <ul style="text-align:left;">
+                                                    <li><strong>Get Column List:</strong> Retrieved a list of all date columns in the staging tables.</li>
+                                                    <li><strong>Foreach Loop Container:</strong> Iterated over each table to:
+                                                        <ul>
+                                                            <li><strong>Add Truncated Date Columns:</strong> Added new columns for truncated dates.</li>
+                                                            <li><strong>Set Truncated Date Columns:</strong> Populated the new columns with truncated date values.</li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                                <p><strong>Example of Formatting Differences:</strong></p>
+                                                <ul style="text-align:left;">
+                                                    <li><code>dim_date.full_date</code>: <code>2014-01-02</code></li>
+                                                    <li>Other tables: <code>2006-01-15 00:00:00.0000000</code></li>
+                                                </ul>
+                                                <figure>
+                                                    <img src="images/retail-ssis/truncated_dates_package.png" alt="Data in dim_product">
+                                                    <figcaption>Package for adding truncated date columns to resolve date format inconsistencies.</figcaption>
+                                                </figure>
+                                            </div>
+
+                                            <!-- Issue 2: Orphaned Rows in Fact Tables -->
+                                            <div class="issue">
+                                                <h5>Issue 2: Orphaned Rows in Fact Tables</h5>
+                                                <p><strong>Description:</strong> Some <code>product_id</code> values in the <code>fact_sales</code> table did not have corresponding entries in the <code>dim_product</code> table, resulting in <code>NULL</code> values for the <code>product_fk</code> column in the fact table.</p>
+                                                <p><strong>Solution:</strong> To handle these orphaned rows, we added a default row in the <code>dim_product</code> table with an <code>id</code> of <code>-1</code> and updated the orphaned rows in the <code>fact_sales</code> table to reference this default product.</p>
+                                                <p><strong>Steps Taken:</strong></p>
+                                                <ul style="text-align:left;">
+                                                    <li><strong>Add Default Row:</strong> Inserted a row in the <code>dim_product</code> table with <code>product_id = -1</code>.</li>
+                                                    <li><strong>Update Orphaned Rows:</strong> Updated rows in the <code>fact_sales</code> table where <code>product_id</code> did not exist in <code>dim_product</code> to use <code>-1</code>.</li>
+                                                </ul>
+
+                                                <figure>
+                                                    <img src="images/retail-ssis/adding_unknown_product_row.png" alt="Data in dim_product">
+                                                    <figcaption>Inserting row to dim product for unknown product.</figcaption>
+                                                </figure>
+                                                <figure>
+                                                    <img src="images/retail-ssis/updating_orphan_rows.png" alt="Data in dim_product">
+                                                    <figcaption>Process of updating orphaned product rows to reference the unknown product.</figcaption>
+                                                </figure>
+                                            </div>
+
+                                            <!-- Issue 3: SSAS Deployment Errors -->
+                                            <div class="issue">
+                                                <h5>Issue 3: SSAS Deployment Errors</h5>
+                                                <p><strong>Description:</strong> While deploying the SSAS project, several errors occurred related to user permissions and server mode.</p>
+                                                <p><strong>Errors Encountered:</strong></p>
+                                                <ul style="text-align:left;">
+                                                    <li>"The user name or password is incorrect."</li>
+                                                    <li>"A connection could not be made to the data source."</li>
+                                                    <li>"The server is not running in multidimensional mode."</li>
+                                                </ul>
+                                                <p><strong>Solutions:</strong></p>
+                                                <ul style="text-align:left;">
+                                                    <li><strong>Impersonation Information:</strong> Ensure the SSAS project uses a username and password for the impersonation information, rather than relying on default settings or a PIN.</li>
+                                                    <li><strong>Running in Multidimensional Mode:</strong> Confirm that the SSAS instance is running in multidimensional mode. If the service fails to start after changing the mode, create a new SSAS instance configured for multidimensional mode and migrate the database to this new server.</li>
+                                                </ul>
+                                                <p><strong>Steps Taken:</strong></p>
+                                                <ul style="text-align:left;">
+                                                    <li><strong>Change Impersonation Information:</strong> Set the data source to use specific credentials.</li>
+                                                    <li><strong>Configure SSAS Instance:</strong> Adjust the SSAS instance to run in multidimensional mode.</li>
+                                                    <li><strong>Create New SSAS Instance:</strong> If the existing instance fails, create a new instance and migrate the data.</li>
+                                                </ul>
+                                                <figure>
+                                                    <img src="/images/retail-ssis/deployment_successful.png" alt="SSAS Deployment">
+                                                    <figcaption>SSAS Deployment Process Completed Successfully</figcaption>
+                                                </figure>
+                                            </div>
+                                        </section>
+
+
 
 
 					</div>          
